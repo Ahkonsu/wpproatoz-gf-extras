@@ -5,8 +5,8 @@
 | | | | | | |   < (_) | | | \__ \ |_| |
 \_| |_/_| |_|_|\_\___/|_| |_|___/\__,_|
                                        
-     
-
+                                      
+		
 		\||/
                 |  @___oo
       /\  /\   / (__,,,,|
@@ -18,10 +18,12 @@
  ||      /    \)___)\
  | \____(      )___) )___
   \______(_______;;; __;;;
+  
+                     .
 
-# GF Extras
+# PLUGin name
 
-This plugin allows you to choose from an assortment of code snippets that are useful when building out your website especially if you use Elementor. This is a useful plugin
+what the plugin does
 
 ### About the plugin
 talk about plugin
