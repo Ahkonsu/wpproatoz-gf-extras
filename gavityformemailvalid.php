@@ -4,9 +4,36 @@ Plugin Name: Gravity Forms Enhanced Tools
 Plugin URI: https://wpproatoz.com
 Description: Enhanced tools for Gravity Forms including email domain validation and spam filtering
 Version: 1.0
+Requires at least: 5.2
+Requires PHP:      7.4
 Author: WPProAtoZ.com
 Author URI: https://wpproatoz.com
+Text Domain:       wpproatoz-code-snippets
+Update URI:        https://github.com/Ahkonsu/wpproatoz-gf-extras/releases
+GitHub Plugin URI: https://github.com/Ahkonsu/wpproatoz-gf-extras/releases
+GitHub Branch: main  // 
 */
+
+//////////////////
+//plugin uopdater
+require 'plugin-update-checker/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+	'https://github.com/Ahkonsu/wpproatoz-gf-extras/',
+	__FILE__,
+	'wpproatoz-gf-extras'
+);
+
+//Set the branch that contains the stable release.
+$myUpdateChecker->setBranch('main');
+
+//Optional: If you're using a private repository, specify the access token like this:
+//$myUpdateChecker->setAuthentication('your-token-here');
+
+
+
+/////////////end updater code
 
 class GravityForms_Enhanced_Tools {
     private $settings;
