@@ -21,59 +21,66 @@
   
                      .
 
-# PLUGin name
+# Gravity Forms Enhanced Tools
 
-what the plugin does
-
-### About the plugin
-talk about plugin
-- **feature 1**
-- **feature 2**
-- **feature 3**
-- **feature 4**
-
-For more information on the PLUGIN visit the official website: [https:siteurl).
-
-### Key Features
-
-- **feature 1**
-- **feature 2**
-- **feature 3**
-- **feature 4**
+## Description
+Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms functionality with two powerful features:
+1. Email Domain Validator - Restrict or allow form submissions based on email domains
+2. Spam Filter - Block spam submissions using WordPress Disallowed Comment Keys
 
 ## Installation
+1. Upload the plugin folder to your `/wp-content/plugins/` directory
+2. Activate the plugin through the 'Plugins' menu in WordPress
+3. Configure settings under Settings > GF Enhanced Tools
 
-1. Download the plugin ZIP file from the [releases page](https://github.com/Ahkonsu/wpproatoz-code-snippets/releases/).
-2. Upload it to your WordPress site via the **Plugins** > **Add New** > **Upload Plugin**.
-3. Activate the plugin through the **Plugins** menu in WordPress.
+## Features
+
+### Email Domain Validator
+- Validates email domains against a specified list
+- Supports two modes:
+  - 'ban': Blocks specified domains
+  - 'limit': Only allows specified domains
+- Configurable per form and field
+- Customizable validation message
+
+Default configuration:
+- Form ID: 1
+- Field ID: 3
+- Domains: ['mc-2.com']
+- Mode: 'limit'
+
+### Spam Filter
+- Uses WordPress Disallowed Comment Keys (Settings > Discussion > Disallowed Comment Keys)
+- Checks all form fields against spam terms
+- Supports:
+  - Email fields
+  - Name fields
+  - Text fields
+  - Textarea fields
+  - Phone and Company fields
+
+## Configuration
+1. Go to Settings > GF Enhanced Tools in WordPress admin
+2. Enable/disable features using the checkboxes
+3. For Spam Filter: Add terms to Settings > Discussion > Disallowed Comment Keys
+4. For Email Validator: Modify the configuration array in the plugin code
 
 ## Usage
+- The plugin works automatically once activated and configured
+- Email validation occurs during form submission
+- Spam filtering checks entries before they're saved
+- Both features can be independently enabled/disabled
 
-1. **Configure Plugin Settings**: Navigate to **Settings** > ** Settings**.
-2. **more info**: .
-3. **moreinfo**: 
-4. **moreinfo**: 
+## Requirements
+- WordPress 4.0 or higher
+- Gravity Forms plugin
 
-### Admin Settings
+## Support
+Contact support@wpproatoz.com for assistance
 
-- **Settings**: 
-- **settings**: 
-- **settings**: 
-- **settings**: 
-
-## Frequently Asked Questions
-
-### question 1?
-
-answer
-
-### question 2?
-
-answer
-
-### question 3?
-
-answer.
+## Credits
+- Email Domain Validator based on GW_Email_Domain_Validator class
+- Spam Filter originally developed by Nikki Stokes (https://thebizpixie.com)
 
 ## Screenshots
 
