@@ -145,37 +145,3 @@ Contributions are welcome! Feel free to fork the repository at https://github.co
 
 **Note:** This plugin uses any other credits to other code or coders
 
-
-## Screenshots
-
-1. **Admin Settings Page** - description.
-
-![screenshot1](screenshot1.png)
-
-2. ** Output** - answer
-
-![screenshot2](screenshot2.png)
-
-## Demo
-
-You can view a demo of the plugin in action at [WPProAtoZ.com](https://wpproatoz.com/plugins).
-
-## Changelog
-
-### 1.0.0
-
-- Initial release of 
-- Added functionality 
-- Added 
-
-## License
-
-This plugin is licensed under the GPL v2 or later. For more information, please see the [GNU General Public License](https://www.gnu.org/licenses/gpl-2.0.html).
-
-## Contributing
-
-Contributions are welcome! Feel free to fork the repository, submit issues, or create pull requests.
-
----
-
-**Note:** This plugin uses any other credits to other code or coders
