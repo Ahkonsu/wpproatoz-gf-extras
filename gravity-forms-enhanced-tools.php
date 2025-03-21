@@ -3,58 +3,39 @@
 Plugin Name: Gravity Forms Enhanced Tools
 Plugin URI: https://wpproatoz.com
 Description: Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms with advanced email domain validation and spam filtering capabilities. It allows you to restrict or allow form submissions based on email domains and block spam entries using WordPress’s Disallowed Comment Keys.
-Version: 1.7
+Version: 1.8
 Requires at least: 5.2
-Requires PHP:      8.0
+Requires PHP: 8.0
 Author: WPProAtoZ.com
 Author URI: https://wpproatoz.com
-Text Domain:       gravity-forms-enhanced-tools
-Update URI:        https://github.com/Ahkonsu/wpproatoz-gf-extras/releases
+Text Domain: gravity-forms-enhanced-tools
+Update URI: https://github.com/Ahkonsu/wpproatoz-gf-extras/releases
 GitHub Plugin URI: https://github.com/Ahkonsu/wpproatoz-gf-extras/releases
-GitHub Branch: main  // 
+GitHub Branch: main
 */
-// Exit if accessed directly
-//////////////////
-//plugin updater
-require 'plugin-update-checker/plugin-update-checker.php';
-use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
-
-$myUpdateChecker = PucFactory::buildUpdateChecker(
-	'https://github.com/Ahkonsu/wpproatoz-gf-extras/',
-	__FILE__,
-	'wpproatoz-gf-extras'
-);
-
-//Set the branch that contains the stable release.
-$myUpdateChecker->setBranch('main');
-
-//Optional: If you're using a private repository, specify the access token like this:
-//$myUpdateChecker->setAuthentication('your-token-here');
-
-
-
-/////////////end updater code
-
 
 // Exit if accessed directly
 if (!defined('ABSPATH')) {
     exit;
 }
 
+// Plugin updater
+require 'plugin-update-checker/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
-// Log function for debugging
-function gfet_log($message) {
-    if (WP_DEBUG === true) {
-        error_log('[GF Enhanced Tools] ' . $message);
-    }
-}
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+    'https://github.com/Ahkonsu/wpproatoz-gf-extras/',
+    __FILE__,
+    'wpproatoz-gf-extras'
+);
+
+$myUpdateChecker->setBranch('main');
 
 // Check Gravity Forms dependency
 if (!class_exists('GFForms')) {
     add_action('admin_notices', function() {
         echo '<div class="error"><p>Gravity Forms Enhanced Tools requires Gravity Forms to be installed and activated.</p></div>';
     });
-    gfet_log('Gravity Forms not found');
     return;
 }
 
@@ -63,140 +44,125 @@ class GravityForms_Enhanced_Tools {
     private $settings;
 
     public function __construct() {
-        gfet_log('Plugin constructor called');
-        try {
-            $this->settings = get_option('gf_enhanced_tools_settings', array(
-                'email_validator' => 'on',
-                'spam_filter' => 'on',
-                'restricted_domains' => "gmail.com\nhotmail.com\ntest.com",
-                'form_ids' => '152',
-                'field_id' => '9',
-                'mode' => 'limit',
-                'validation_message' => '',
-                'entry_block_terms' => '',
-                'spam_all_fields' => 'off',
-                'hide_validation_message' => 'off'
-            ));
+        $this->settings = get_option('gf_enhanced_tools_settings', array(
+            'email_validator' => 'on',
+            'spam_filter' => 'on',
+            'restricted_domains' => "gmail.com\nhotmail.com\ntest.com",
+            'form_ids' => '152',
+            'field_id' => '9',
+            'mode' => 'limit',
+            'validation_message' => '',
+            'entry_block_terms' => '',
+            'spam_all_fields' => 'off',
+            'hide_validation_message' => 'off'
+        ));
 
-            add_action('admin_menu', array($this, 'add_admin_menu'));
-            add_action('admin_init', array($this, 'register_settings'));
-            add_filter('plugin_action_links_' . plugin_basename(__FILE__), array($this, 'add_settings_link'));
+        add_action('admin_menu', array($this, 'add_admin_menu'));
+        add_action('admin_init', array($this, 'register_settings'));
+        add_filter('plugin_action_links_' . plugin_basename(__FILE__), array($this, 'add_settings_link'));
 
-            if ($this->settings['email_validator'] === 'on') {
-                $this->init_email_validator();
-            }
+        if ($this->settings['email_validator'] === 'on') {
+            $this->init_email_validator();
+        }
 
-            if ($this->settings['spam_filter'] === 'on') {
-                add_filter('gform_entry_is_spam', array($this, 'spam_filter'), 10, 3);
-            }
-        } catch (Exception $e) {
-            gfet_log('Constructor error: ' . $e->getMessage());
+        if ($this->settings['spam_filter'] === 'on') {
+            add_filter('gform_entry_is_spam', array($this, 'spam_filter'), 10, 3);
         }
     }
 
     private function init_email_validator() {
-        gfet_log('Initializing email validator');
-        try {
-            $domains = array_filter(explode("\n", $this->settings['restricted_domains']));
-            $domains = array_map('trim', $domains);
-            $form_ids = array_filter(array_map('intval', explode(',', $this->settings['form_ids'])));
-            $validation_message = !empty($this->settings['validation_message']) 
-                ? $this->settings['validation_message'] 
-                : __('Oh no! <strong>%s</strong> email accounts are not eligible for this form.', 'gf-enhanced-tools');
-            $hide_validation_message = $this->settings['hide_validation_message'] ?? 'off';
+        $domains = array_filter(explode("\n", $this->settings['restricted_domains']));
+        $domains = array_map('trim', $domains);
+        $form_ids = array_filter(array_map('intval', explode(',', $this->settings['form_ids'])));
+        $validation_message = !empty($this->settings['validation_message']) 
+            ? $this->settings['validation_message'] 
+            : __('Oh no! <strong>%s</strong> email accounts are not eligible for this form.', 'gf-enhanced-tools');
+        $hide_validation_message = $this->settings['hide_validation_message'] ?? 'off';
 
-            foreach ($form_ids as $form_id) {
-                $validator = new GFET_Email_Validator(array(
-                    'form_id'            => $form_id,
-                    'field_id'           => intval($this->settings['field_id']),
-                    'domains'            => $domains,
-                    'validation_message' => $validation_message,
-                    'mode'               => $this->settings['mode'],
-                    'hide_validation_message' => $hide_validation_message
-                ));
-            }
-        } catch (Exception $e) {
-            gfet_log('Email validator init error: ' . $e->getMessage());
+        foreach ($form_ids as $form_id) {
+            $validator = new GFET_Email_Validator(array(
+                'form_id'            => $form_id,
+                'field_id'           => intval($this->settings['field_id']),
+                'domains'            => $domains,
+                'validation_message' => $validation_message,
+                'mode'               => $this->settings['mode'],
+                'hide_validation_message' => $hide_validation_message
+            ));
         }
     }
 
     public function spam_filter($is_spam, $form, $entry) {
-        try {
-            $mod_keys = trim(get_option('disallowed_keys'));
-            if (empty($mod_keys)) return $is_spam;
+        $mod_keys = trim(get_option('disallowed_keys'));
+        if (empty($mod_keys)) return $is_spam;
 
-            $words = explode("\n", $mod_keys);
-            $fields_to_check = array();
+        $words = explode("\n", $mod_keys);
+        $fields_to_check = array();
 
-            if ($this->settings['spam_all_fields'] === 'on') {
-                foreach ($form['fields'] as $field) {
-                    $id = $field->id;
-                    $value = rgar($entry, $id);
-                    if ($field->type === 'textarea') {
-                        $value = wp_strip_all_tags($value);
-                    }
-                    if (!empty($value)) {
-                        $fields_to_check[] = $value;
-                    }
+        if ($this->settings['spam_all_fields'] === 'on') {
+            foreach ($form['fields'] as $field) {
+                $id = $field->id;
+                $value = rgar($entry, $id);
+                if ($field->type === 'textarea') {
+                    $value = wp_strip_all_tags($value);
                 }
-            } else {
-                $email = '';
-                $name = '';
-                $phone = '';
-                $company = '';
-                $text = '';
-                $message = '';
-                $message_without_html = '';
-
-                foreach ($form['fields'] as $field) {
-                    $id = $field->id;
-                    if ($field->type == 'email') {
-                        $email = rgar($entry, $id);
-                    }
-                    if ($field->type == 'name' && $field->nameFormat != 'simple') {
-                        $name = rgar($entry, $id . '.3') . " " . rgar($entry, $id . '.6');
-                    }
-                    if ($field->type == 'text') {
-                        $label = $field->label;
-                        if ($label == 'First Name' || $label == 'Last Name') {
-                            $name = rgar($entry, $id) . " " . ($name ?? '');
-                        }
-                        elseif ($label == 'Phone') {
-                            $phone = rgar($entry, $id);
-                        }
-                        elseif ($label == 'Company') {
-                            $company = rgar($entry, $id);
-                        }
-                        else {
-                            $text = rgar($entry, $id);
-                        }
-                    }
-                    if ($field->type == 'textarea') {
-                        $message = rgar($entry, $id);
-                        $message_without_html = wp_strip_all_tags($message);
-                    }
-                }
-
-                $fields_to_check = array($name, $email, $phone, $company, $text, $message, $message_without_html);
-            }
-
-            foreach ((array)$words as $word) {
-                $word = trim($word);
-                if (empty($word)) continue;
-                $word = preg_quote($word, '#');
-                $pattern = "#$word#i";
-                
-                foreach ($fields_to_check as $field_value) {
-                    if ($field_value && preg_match($pattern, $field_value)) {
-                        return true;
-                    }
+                if (!empty($value)) {
+                    $fields_to_check[] = $value;
                 }
             }
-            return $is_spam;
-        } catch (Exception $e) {
-            gfet_log('Spam filter error: ' . $e->getMessage());
-            return $is_spam;
+        } else {
+            $email = '';
+            $name = '';
+            $phone = '';
+            $company = '';
+            $text = '';
+            $message = '';
+            $message_without_html = '';
+
+            foreach ($form['fields'] as $field) {
+                $id = $field->id;
+                if ($field->type == 'email') {
+                    $email = rgar($entry, $id);
+                }
+                if ($field->type == 'name' && $field->nameFormat != 'simple') {
+                    $name = rgar($entry, $id . '.3') . " " . rgar($entry, $id . '.6');
+                }
+                if ($field->type == 'text') {
+                    $label = $field->label;
+                    if ($label == 'First Name' || $label == 'Last Name') {
+                        $name = rgar($entry, $id) . " " . ($name ?? '');
+                    }
+                    elseif ($label == 'Phone') {
+                        $phone = rgar($entry, $id);
+                    }
+                    elseif ($label == 'Company') {
+                        $company = rgar($entry, $id);
+                    }
+                    else {
+                        $text = rgar($entry, $id);
+                    }
+                }
+                if ($field->type == 'textarea') {
+                    $message = rgar($entry, $id);
+                    $message_without_html = wp_strip_all_tags($message);
+                }
+            }
+
+            $fields_to_check = array($name, $email, $phone, $company, $text, $message, $message_without_html);
         }
+
+        foreach ((array)$words as $word) {
+            $word = trim($word);
+            if (empty($word)) continue;
+            $word = preg_quote($word, '#');
+            $pattern = "#$word#i";
+            
+            foreach ($fields_to_check as $field_value) {
+                if ($field_value && preg_match($pattern, $field_value)) {
+                    return true;
+                }
+            }
+        }
+        return $is_spam;
     }
 
     public function add_admin_menu() {
@@ -242,7 +208,6 @@ class GravityForms_Enhanced_Tools {
             $updated_keys = implode("\n", array_filter($combined));
             
             update_option('disallowed_keys', $updated_keys);
-            gfet_log('Updated disallowed_keys with new terms');
         }
 
         return $new_input;
@@ -252,7 +217,6 @@ class GravityForms_Enhanced_Tools {
         $settings = $this->settings;
         $default_message = __('Oh no! <strong>%s</strong> email accounts are not eligible for this form.', 'gf-enhanced-tools');
         $active_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'settings';
-
         ?>
         <div class="wrap">
             <h1>Gravity Forms Enhanced Tools</h1>
@@ -367,17 +331,17 @@ class GravityForms_Enhanced_Tools {
                     <?php submit_button(); ?>
                 </form>
             <?php elseif ($active_tab === 'docs') : ?>
-                <div class="gfet-docs" style="margin-top: 20px; line-height: 1.6; word-wrap: break-word; max-width: 800px;">
-                    <?php
-                    $readme_file = plugin_dir_path(__FILE__) . 'Readme.txt';
-                    if (file_exists($readme_file)) {
-                        $readme_content = file_get_contents($readme_file);
-                        echo nl2br(esc_html($readme_content));
-                    } else {
-                        echo '<p class="error" style="color: red;">README.txt file not found in the plugin directory.</p>';
-                    }
-                    ?>
-                </div>
+                <?php
+                $plugin_dir = plugin_dir_path(__FILE__);
+                $readme_file = $plugin_dir . 'documentation.txt';
+
+                if (file_exists($readme_file)) {
+                    $readme_content = file_get_contents($readme_file);
+                    echo '<pre>' . esc_html($readme_content) . '</pre>';
+                } else {
+                    echo '<p class="error" style="color: red;">documentation.txt file not found in the plugin directory: ' . esc_html($plugin_dir) . '</p>';
+                }
+                ?>
             <?php endif; ?>
         </div>
         <?php
@@ -407,33 +371,28 @@ class GFET_Email_Validator {
     }
 
     public function validate($validation_result) {
-        try {
-            $form = $validation_result['form'];
-            foreach ($form['fields'] as &$field) {
-                if (!method_exists('RGFormsModel', 'get_input_type') || 
-                    RGFormsModel::get_input_type($field) != 'email') continue;
-                if ($this->args['field_id'] && !in_array($field->id, $this->args['field_id'])) continue;
-                
-                $page_number = class_exists('GFFormDisplay') ? GFFormDisplay::get_source_page($form['id']) : 0;
-                if ($page_number > 0 && $field->pageNumber != $page_number) continue;
-                if (method_exists('GFFormsModel', 'is_field_hidden') && 
-                    GFFormsModel::is_field_hidden($form, $field, array())) continue;
+        $form = $validation_result['form'];
+        foreach ($form['fields'] as &$field) {
+            if (!method_exists('RGFormsModel', 'get_input_type') || 
+                RGFormsModel::get_input_type($field) != 'email') continue;
+            if ($this->args['field_id'] && !in_array($field->id, $this->args['field_id'])) continue;
+            
+            $page_number = class_exists('GFFormDisplay') ? GFFormDisplay::get_source_page($form['id']) : 0;
+            if ($page_number > 0 && $field->pageNumber != $page_number) continue;
+            if (method_exists('GFFormsModel', 'is_field_hidden') && 
+                GFFormsModel::is_field_hidden($form, $field, array())) continue;
 
-                $domain = $this->get_email_domain($field);
-                if ($this->is_domain_valid($domain) || empty($domain)) continue;
+            $domain = $this->get_email_domain($field);
+            if ($this->is_domain_valid($domain) || empty($domain)) continue;
 
-                $validation_result['is_valid'] = false;
-                $field['failed_validation'] = true;
-                if ($this->args['hide_validation_message'] !== 'on') {
-                    $field['validation_message'] = sprintf($this->args['validation_message'], $domain);
-                }
+            $validation_result['is_valid'] = false;
+            $field['failed_validation'] = true;
+            if ($this->args['hide_validation_message'] !== 'on') {
+                $field['validation_message'] = sprintf($this->args['validation_message'], $domain);
             }
-            $validation_result['form'] = $form;
-            return $validation_result;
-        } catch (Exception $e) {
-            gfet_log('Email validation error: ' . $e->getMessage());
-            return $validation_result;
         }
+        $validation_result['form'] = $form;
+        return $validation_result;
     }
 
     private function get_email_domain($field) {
@@ -463,12 +422,7 @@ class GFET_Email_Validator {
 }
 
 // Initialize plugin
-try {
-    new GravityForms_Enhanced_Tools();
-    gfet_log('Plugin initialized successfully');
-} catch (Exception $e) {
-    gfet_log('Plugin initialization failed: ' . $e->getMessage());
-}
+new GravityForms_Enhanced_Tools();
 
 // Helper function
 if (!function_exists('rgar')) {

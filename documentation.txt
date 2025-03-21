@@ -1,0 +1,52 @@
+Gravity Forms Enhanced Tools - Documentation
+
+Description:
+Gravity Forms Enhanced Tools extends Gravity Forms with email domain validation and spam filtering features. 
+It allows you to restrict or allow form submissions based on email domains and block spam using WordPress’s Disallowed Comment Keys.
+
+Installation:
+1. Upload the "wpproatoz-gf-extras" folder to your "/wp-content/plugins/" directory.
+2. Activate the plugin via the "Plugins" page in WordPress admin.
+3. Configure it by clicking the "Settings" link next to the plugin or navigating to "Settings > GF Enhanced Tools".
+
+Requirements:
+- WordPress 5.2 or higher
+- Gravity Forms (active)
+- PHP 8.0 or higher
+
+Usage:
+
+1. Accessing Settings:
+   - Go to "Settings > GF Enhanced Tools" or use the "Settings" link on the Plugins page.
+
+2. Email Domain Validator:
+   - Enable: Check "Email Domain Validator" (on by default).
+   - Form IDs: Enter Gravity Form IDs (e.g., "152, 153") to apply validation.
+   - Field ID: Specify the email field ID (e.g., "9") for validation.
+   - Validation Mode:
+     - "Limit to these domains": Only allows listed domains (e.g., "gmail.com").
+     - "Ban these domains": Blocks listed domains, allows others.
+   - Restricted Domains: List domains (one per line, e.g., "gmail.com\nhotmail.com").
+   - Validation Message: Customize the error message (e.g., "Oh no! %s emails are not allowed"). Leave blank for default.
+   - Hide Validation Message: Check to fail silently without showing the message.
+   - Save changes to apply.
+
+3. Spam Filter:
+   - Enable: Check "Spam Filter" (on by default).
+   - Check All Fields: Check to scan all fields for spam terms; uncheck to limit to email, name, phone, company, and message fields.
+   - Entry Block Terms: List spam terms (one per line, e.g., "spam\nviagra") to block submissions. These update WordPress’s Disallowed Comment Keys.
+   - Save changes to apply.
+
+Managing Disallowed Comment Keys:
+- Terms added via "Entry Block Terms" are appended to "Settings > Discussion > Disallowed Comment Keys".
+- Duplicates are avoided, and existing keys are preserved.
+
+Testing:
+- Email Validation: Submit a form with a restricted domain email (e.g., "test@gmail.com" if "gmail.com" is banned) to verify blocking or allowance.
+- Spam Filter: Add a term (e.g., "spam") to "Entry Block Terms", then submit a form with that term to ensure it’s flagged as spam.
+
+Support:
+For assistance, contact support@wpproatoz.com.
+
+Credits:
+Developed by WPProAtoZ.com.

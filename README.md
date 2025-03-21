@@ -130,6 +130,7 @@ You can view a demo of the plugin in action at [WPProAtoZ.com](https://wpproatoz
 - **1.5**: Fixed undefined variable warnings in spam filter.
 - **1.3**: Added Entry Block Terms to manage disallowed keys.
 - **1.7**: Updated to use `disallowed_keys` instead of deprecated `blacklist_keys`.
+- **1.8**: Updated corrected issued with documentation page.
 
 ## Credits
 
