@@ -369,7 +369,7 @@ class GravityForms_Enhanced_Tools {
             <?php elseif ($active_tab === 'docs') : ?>
                 <div class="gfet-docs" style="margin-top: 20px; line-height: 1.6; word-wrap: break-word; max-width: 800px;">
                     <?php
-                    $readme_file = plugin_dir_path(__FILE__) . 'README.txt';
+                    $readme_file = plugin_dir_path(__FILE__) . 'Readme.txt';
                     if (file_exists($readme_file)) {
                         $readme_content = file_get_contents($readme_file);
                         echo nl2br(esc_html($readme_content));
