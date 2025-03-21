@@ -22,7 +22,7 @@
 # Gravity Forms Enhanced Tools
 
 ## Description
-Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms with advanced email domain validation and spam filtering capabilities. It allows you to restrict or allow form submissions based on email domains and block spam entries using WordPress’s Disallowed Comment Keys.
+Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms with advanced email domain validation and spam filtering capabilities. It allows you to restrict or allow form submissions based on email domains and block spam entries using WordPressâ€™s Disallowed Comment Keys.
 
 ## Features
 
@@ -33,7 +33,7 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 - **Flexible Configuration**: Choose between "Limit" (whitelist) or "Ban" (blacklist) modes.
 
 ### Spam Filter
-- **Disallowed Keys Integration**: Uses WordPress’s Disallowed Comment Keys to flag spam entries.
+- **Disallowed Keys Integration**: Uses WordPressâ€™s Disallowed Comment Keys to flag spam entries.
 - **Field Flexibility**: Optionally check all form fields or limit to specific types (email, name, phone, company, message).
 - **Entry Blocking**: Add terms directly from the plugin to block spam submissions.
 
@@ -70,7 +70,7 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 2. **Check All Fields for Spam**:
    - **Unchecked**: Only checks email, name (First Name/Last Name), phone, company, and message fields for spam terms.
    - **Checked**: Scans all form fields (e.g., text, textarea, select) for spam terms.
-3. **Entry Block Terms**: Enter one term per line (e.g., `spam`, `viagra`) to block submissions containing these terms. These are added to WordPress’s Disallowed Comment Keys when saved (if spam filter is enabled).
+3. **Entry Block Terms**: Enter one term per line (e.g., `spam`, `viagra`) to block submissions containing these terms. These are added to WordPressâ€™s Disallowed Comment Keys when saved (if spam filter is enabled).
 4. **Save**: Click "Save Changes" to apply settings.
 
 ### Managing Disallowed Comment Keys
@@ -107,11 +107,11 @@ Contact support@wpproatoz.com for assistance.
 
 1. **Admin Settings Page** - description.
 
-![screenshot1](screenshot-1.png)
+![screenshot1](screenshot1.png)
 
 2. ** Output** - answer
 
-![screenshot2](screenshot-2.png)
+![screenshot2](screenshot2.png)
 
 ## Demo
 
