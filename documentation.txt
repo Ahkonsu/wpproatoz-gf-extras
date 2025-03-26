@@ -10,9 +10,9 @@ Installation:
 3. Configure it by clicking the "Settings" link next to the plugin or navigating to "Settings > GF Enhanced Tools".
 
 Requirements:
-- WordPress 5.2 or higher
-- Gravity Forms (active)
-- PHP 8.0 or higher
+- WordPress 6.0 or higher
+- Gravity Forms plugin (active)
+- PHP 8.0 or higher (8.3+ recommended)
 
 Usage:
 

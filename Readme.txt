@@ -19,7 +19,22 @@
  | \____(      )___) )___
   \______(_______;;; __;;;
   
-                     .
+    
+/*
+Plugin Name: WPProAtoZ Enhanced Tools for Gravity Forms
+Plugin URI: https://wpproatoz.com
+Description: Enhanced Tools for Gravity Forms is a WordPress plugin that extends Gravity Forms with advanced email domain validation and spam filtering capabilities. It allows you to restrict or allow form submissions based on email domains and block spam entries using WordPress’s Disallowed Comment Keys.
+Version: 1.9
+Requires at least: 6.0
+Requires PHP: 8.0
+Author: WPProAtoZ.com
+Author URI: https://wpproatoz.com
+Text Domain: gravity-forms-enhanced-tools
+Update URI: https://github.com/Ahkonsu/wpproatoz-gf-extras/releases
+GitHub Plugin URI: https://github.com/Ahkonsu/wpproatoz-gf-extras/releases
+GitHub Branch: main
+Requires Plugins: gravityforms
+*/
 
 # Gravity Forms Enhanced Tools
 
@@ -45,9 +60,9 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 3. **Configure**: Click the "Settings" link next to the plugin on the Plugins page, or navigate to **Settings > GF Enhanced Tools**.
 
 ## Requirements
-- WordPress 4.0 or higher
+- WordPress 6.0 or higher
 - Gravity Forms plugin (active)
-- PHP 5.6 or higher (7.0+ recommended)
+- PHP 8.0 or higher (8.3+ recommended)
 
 ## Usage
 

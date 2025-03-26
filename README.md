@@ -43,9 +43,9 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 3. **Configure**: Click the "Settings" link next to the plugin on the Plugins page, or navigate to **Settings > GF Enhanced Tools**.
 
 ## Requirements
-- WordPress 4.0 or higher
+- WordPress 6.0 or higher
 - Gravity Forms plugin (active)
-- PHP 5.6 or higher (7.0+ recommended)
+- PHP 8.0 or higher (8.3+ recommended)
 
 ## Usage
 
@@ -131,6 +131,7 @@ You can view a demo of the plugin in action at [WPProAtoZ.com](https://wpproatoz
 - **1.3**: Added Entry Block Terms to manage disallowed keys.
 - **1.7**: Updated to use `disallowed_keys` instead of deprecated `blacklist_keys`.
 - **1.8**: Updated corrected issued with documentation page.
+- **1.9**: Updated page content changed plugin name to be more inline with usage. Upadedusage requirements ect. Added starter list of spam terms, phrases.
 
 ## Credits
 
