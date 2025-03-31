@@ -1,8 +1,8 @@
 Gravity Forms Enhanced Tools - Documentation
 
 Description:
-Gravity Forms Enhanced Tools extends Gravity Forms with email domain validation and spam filtering features. 
-It allows you to restrict or allow form submissions based on email domains and block spam using WordPress’s Disallowed Comment Keys.
+Gravity Forms Enhanced Tools extends Gravity Forms with advanced email domain validation, spam filtering, and spam prediction features. 
+It allows you to restrict or allow form submissions based on email domains, block spam using WordPress’s Disallowed Comment Keys, and predict future spam using a custom database of terms and phrases from past spam submissions.
 
 Installation:
 1. Upload the "wpproatoz-gf-extras" folder to your "/wp-content/plugins/" directory.
@@ -27,15 +27,32 @@ Usage:
      - "Limit to these domains": Only allows listed domains (e.g., "gmail.com").
      - "Ban these domains": Blocks listed domains, allows others.
    - Restricted Domains: List domains (one per line, e.g., "gmail.com\nhotmail.com").
-   - Validation Message: Customize the error message (e.g., "Oh no! %s emails are not allowed"). Leave blank for default.
+   - Validation Message: Customize the error message (e.g., "Oh no! %s emails are not allowed"). Leave blank for default: "Oh no! <strong>%s</strong> email accounts are not eligible for this form."
    - Hide Validation Message: Check to fail silently without showing the message.
    - Save changes to apply.
 
 3. Spam Filter:
    - Enable: Check "Spam Filter" (on by default).
-   - Check All Fields: Check to scan all fields for spam terms; uncheck to limit to email, name, phone, company, and message fields.
+   - Check All Fields: Check to scan all fields for spam terms; uncheck to limit to email, name (First Name/Last Name), phone, company, and message fields.
    - Entry Block Terms: List spam terms (one per line, e.g., "spam\nviagra") to block submissions. These update WordPress’s Disallowed Comment Keys.
    - Save changes to apply.
+
+4. Spam Predictor:
+   - Enable: Check "Spam Predictor" (off by default).
+   - Spam Predictor Threshold: Set the minimum frequency a term/phrase must appear in spam submissions to be blocked (default: 3).
+     - Lower values (1-2): Catch more spam but may flag legitimate submissions (e.g., "contact us").
+     - Higher values (5+): More conservative, reducing false positives but possibly missing spam.
+     - Start at 3 and adjust based on your form data.
+   - Save changes to apply.
+
+5. Managing Spam Terms:
+   - Go to "Settings > GF Enhanced Tools > Spam Terms".
+   - Add Term/Phrase: Enter a term or phrase (min 3 characters, max 5 words, e.g., "buy now cheap"), set an initial frequency (e.g., 5), and specify a Form ID, then click "Add Term".
+   - Edit Term: Update the frequency in the table and click "Update".
+   - Delete Term: Click "Delete" next to a term/phrase and confirm removal.
+   - Update Historical Terms: Click "Update Historical Spam Terms" to process all past spam entries for configured forms into the database.
+   - Bulk Delete Terms: Enter Form IDs (e.g., "152, 153") or leave blank, click "Bulk Delete Terms," and confirm. Blank deletes all terms; specific IDs delete only those forms' terms.
+   - Automatic Cleanup: Terms unseen for 90 days are removed daily.
 
 Managing Disallowed Comment Keys:
 - Terms added via "Entry Block Terms" are appended to "Settings > Discussion > Disallowed Comment Keys".
@@ -44,9 +61,12 @@ Managing Disallowed Comment Keys:
 Testing:
 - Email Validation: Submit a form with a restricted domain email (e.g., "test@gmail.com" if "gmail.com" is banned) to verify blocking or allowance.
 - Spam Filter: Add a term (e.g., "spam") to "Entry Block Terms", then submit a form with that term to ensure it’s flagged as spam.
+- Spam Predictor: Enable the predictor, mark entries as spam in Gravity Forms, add a manual phrase (e.g., "buy now" with frequency 5), test submissions with that phrase, and use bulk delete to clear terms if needed.
 
 Support:
 For assistance, contact support@wpproatoz.com.
 
 Credits:
 Developed by WPProAtoZ.com.
+- Email Domain Validator based on GW_Email_Domain_Validator class.
+- Spam Filter originally developed by Nikki Stokes (https://thebizpixie.com).
