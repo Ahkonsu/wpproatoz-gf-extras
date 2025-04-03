@@ -44,6 +44,7 @@ if (!class_exists('GFForms')) {
 class GravityForms_Enhanced_Tools {
     private $settings;
     private $version = '2.1'; // Updated to 2.1
+    public $field_map;
 
     public function __construct() {
         $default_settings = array(
@@ -66,6 +67,9 @@ class GravityForms_Enhanced_Tools {
         register_activation_hook(__FILE__, array($this, 'create_spam_terms_table'));
         add_action('plugins_loaded', array($this, 'check_and_update_table'));
 
+        $this->field_map = json_decode(get_option('gf_enhanced_tools_field_ids_map', '{}'), true);
+
+
         if (!wp_next_scheduled('gfet_cleanup_spam_terms')) {
             wp_schedule_event(time(), 'daily', 'gfet_cleanup_spam_terms');
         }
@@ -86,6 +90,62 @@ class GravityForms_Enhanced_Tools {
         if ($this->settings['spam_predictor'] === 'on') {
             add_action('gform_after_submission', array($this, 'collect_spam_terms'), 10, 2);
         }
+
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
+        add_action('wp_ajax_gfet_get_form_fields', array($this, 'ajax_get_form_fields'));
+        
+    }
+
+    public function enqueue_admin_assets($hook) {
+        // print 'Admin hook: ' . $hook;
+        // exit;
+        
+        // Ensure we're only loading on the settings screen
+        if (($hook !== 'toplevel_page_gf-enhanced-tools') && ($hook !== 'settings_page_gf-enhanced-tools')) {
+            return;
+        }
+    
+        // Select2
+        wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', ['jquery'], null, true);
+        wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
+    
+        // Your custom JS
+        wp_enqueue_script(
+            'gfet-admin-fields',
+            plugin_dir_url(__FILE__) . 'assets/js/admin_fields.js',
+            ['jquery', 'select2'],
+            null,
+            true
+        );
+    
+        wp_localize_script('gfet-admin-fields', 'gfetAjax', [
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('gfet_ajax')
+        ]);
+    
+        // Your custom CSS
+        wp_enqueue_style(
+            'gfet-admin-fields',
+            plugin_dir_url(__FILE__) . 'assets/css/admin_fields.css'
+        );
+    }
+
+    public function ajax_get_form_fields() {
+        check_ajax_referer('gfet_ajax', 'nonce');
+        $form_id = absint($_POST['form_id']);
+        $form = GFAPI::get_form($form_id);
+        $fields = [];
+    
+        foreach ($form['fields'] as $field) {
+            if (!empty($field->label)) {
+                $fields[] = [
+                    'id' => $field->id,
+                    'label' => $field->label,
+                ];
+            }
+        }
+    
+        wp_send_json_success($fields);
     }
 
     public function create_spam_terms_table() {
@@ -408,10 +468,64 @@ class GravityForms_Enhanced_Tools {
             array($this, 'settings_page')
         );
     }
-
+    
     public function register_settings() {
-        register_setting('gf_enhanced_tools_group', 'gf_enhanced_tools_settings', array($this, 'sanitize_settings'));
+        // Register the main plugin settings array
+        register_setting(
+            'gf_enhanced_tools_group',
+            'gf_enhanced_tools_settings',
+            array($this, 'sanitize_settings')
+        );
+    
+        // Register the form_id => field_id JSON map
+        register_setting(
+            'gf_enhanced_tools_group',
+            'gf_enhanced_tools_field_ids_map',
+            array($this, 'sanitize_field_map')
+        );
     }
+    
+    /**
+     * Sanitize the main plugin settings.
+     */
+    public function sanitize_settings($input) {
+        $output = array();
+    
+        $output['email_validator']           = isset($input['email_validator']) ? 'on' : 'off';
+        $output['spam_filter']               = isset($input['spam_filter']) ? 'on' : 'off';
+        $output['spam_predictor']            = isset($input['spam_predictor']) ? 'on' : 'off';
+        $output['spam_all_fields']           = isset($input['spam_all_fields']) ? 'on' : 'off';
+        $output['hide_validation_message']   = isset($input['hide_validation_message']) ? 'on' : 'off';
+    
+        $output['form_ids']                  = sanitize_text_field($input['form_ids']);
+        $output['mode']                      = in_array($input['mode'], ['limit', 'ban']) ? $input['mode'] : 'limit';
+        $output['validation_message']        = sanitize_text_field($input['validation_message']);
+        $output['restricted_domains']        = sanitize_textarea_field($input['restricted_domains']);
+        $output['entry_block_terms']         = sanitize_textarea_field($input['entry_block_terms']);
+        $output['spam_predictor_threshold']  = isset($input['spam_predictor_threshold']) ? max(1, intval($input['spam_predictor_threshold'])) : 3;
+    
+        return $output;
+    }
+    
+    /**
+     * Sanitize the form_id => field_id JSON map.
+     */
+
+
+    public function sanitize_field_map($input) {
+        error_log('[GFET] Raw input to sanitize_field_map: ' . print_r($input, true));
+    
+        $decoded = json_decode(stripslashes($input), true);
+    
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('[GFET] JSON error: ' . json_last_error_msg());
+            return '{}';
+        }
+    
+        return wp_json_encode(array_map('intval', $decoded));
+    }
+
+
 
     public function add_settings_link($links) {
         $settings_link = '<a href="' . admin_url('options-general.php?page=gf-enhanced-tools') . '">' . __('Settings') . '</a>';
@@ -419,107 +533,10 @@ class GravityForms_Enhanced_Tools {
         return $links;
     }
 
-    public function sanitize_settings($input) {
-        $new_input = array();
-        $new_input['email_validator'] = isset($input['email_validator']) ? 'on' : 'off';
-        $new_input['spam_filter'] = isset($input['spam_filter']) ? 'on' : 'off';
-        $new_input['spam_predictor'] = isset($input['spam_predictor']) ? 'on' : 'off';
-        $new_input['restricted_domains'] = sanitize_textarea_field($input['restricted_domains']);
-        $new_input['form_ids'] = sanitize_text_field($input['form_ids']);
-        $new_input['field_id'] = intval($input['field_id']);
-        $new_input['mode'] = in_array($input['mode'], array('ban', 'limit')) ? $input['mode'] : 'limit';
-        $new_input['validation_message'] = sanitize_text_field($input['validation_message']);
-        $new_input['entry_block_terms'] = sanitize_textarea_field($input['entry_block_terms']);
-        $new_input['spam_all_fields'] = isset($input['spam_all_fields']) ? 'on' : 'off';
-        $new_input['hide_validation_message'] = isset($input['hide_validation_message']) ? 'on' : 'off';
-        $new_input['spam_predictor_threshold'] = intval($input['spam_predictor_threshold']) ?: 3;
-
-        if (!empty($new_input['entry_block_terms']) && $new_input['spam_filter'] === 'on') {
-            $existing_keys = trim(get_option('disallowed_keys', ''));
-            $new_terms = array_filter(explode("\n", $new_input['entry_block_terms']));
-            $new_terms = array_map('trim', $new_terms);
-            $existing_array = $existing_keys ? explode("\n", $existing_keys) : array();
-            $combined = array_unique(array_merge($existing_array, $new_terms));
-            $updated_keys = implode("\n", array_filter($combined));
-            update_option('disallowed_keys', $updated_keys);
-        }
-
-        return $new_input;
-    }
-
     public function settings_page() {
         $settings = $this->settings;
         $default_message = __('Oh no! <strong>%s</strong> email accounts are not eligible for this form.', 'gf-enhanced-tools');
         $active_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'settings';
-
-        if (isset($_POST['gfet_action']) && check_admin_referer('gfet_spam_terms_action')) {
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'gf_spam_terms';
-
-            if ($_POST['gfet_action'] === 'add_term' && !empty($_POST['new_term']) && isset($_POST['new_term_frequency'])) {
-                $new_term = sanitize_text_field($_POST['new_term']);
-                $new_frequency = max(1, intval($_POST['new_term_frequency']));
-                $form_id = intval($_POST['form_id']);
-                $word_count = count(preg_split('/\s+/', trim($new_term)));
-
-                if (strlen($new_term) >= 3 && $form_id > 0 && $word_count <= 5) {
-                    $is_phrase = ($word_count > 1) ? 1 : 0;
-                    $wpdb->query(
-                        $wpdb->prepare(
-                            "INSERT INTO $table_name (term, form_id, is_phrase, frequency, last_seen) 
-                             VALUES (%s, %d, %d, %d, NOW()) 
-                             ON DUPLICATE KEY UPDATE frequency = %d, last_seen = NOW()",
-                            $new_term, $form_id, $is_phrase, $new_frequency, $new_frequency
-                        )
-                    );
-                    echo '<div class="notice notice-success"><p>Term/Phrase added.</p></div>';
-                } else {
-                    echo '<div class="notice notice-error"><p>Term must be at least 3 characters, Form ID must be valid, and phrases must not exceed 5 words.</p></div>';
-                }
-            } elseif ($_POST['gfet_action'] === 'edit_term' && !empty($_POST['term_id']) && !empty($_POST['new_frequency'])) {
-                $term_id = intval($_POST['term_id']);
-                $new_frequency = max(0, intval($_POST['new_frequency']));
-                $wpdb->update(
-                    $table_name,
-                    array('frequency' => $new_frequency),
-                    array('id' => $term_id),
-                    array('%d'),
-                    array('%d')
-                );
-                echo '<div class="notice notice-success"><p>Term frequency updated.</p></div>';
-            } elseif ($_POST['gfet_action'] === 'delete_term' && !empty($_POST['term_id'])) {
-                $term_id = intval($_POST['term_id']);
-                $wpdb->delete($table_name, array('id' => $term_id), array('%d'));
-                echo '<div class="notice notice-success"><p>Term deleted.</p></div>';
-            } elseif ($_POST['gfet_action'] === 'update_historical') {
-                $form_ids = array_filter(array_map('intval', explode(',', $this->settings['form_ids'])));
-                foreach ($form_ids as $form_id) {
-                    $this->update_spam_terms_from_historical_entries($form_id);
-                }
-                echo '<div class="notice notice-success"><p>Historical spam terms updated.</p></div>';
-            } elseif ($_POST['gfet_action'] === 'bulk_delete') {
-                $bulk_form_ids = isset($_POST['bulk_form_ids']) ? sanitize_text_field($_POST['bulk_form_ids']) : '';
-                if (empty($bulk_form_ids)) {
-                    $wpdb->query("TRUNCATE TABLE $table_name");
-                    echo '<div class="notice notice-success"><p>All spam terms deleted.</p></div>';
-                } else {
-                    $form_ids = array_filter(array_map('intval', explode(',', $bulk_form_ids)));
-                    if (!empty($form_ids)) {
-                        $placeholders = implode(',', array_fill(0, count($form_ids), '%d'));
-                        $wpdb->query(
-                            $wpdb->prepare(
-                                "DELETE FROM $table_name WHERE form_id IN ($placeholders)",
-                                ...$form_ids
-                            )
-                        );
-                        echo '<div class="notice notice-success"><p>Spam terms for specified Form IDs deleted.</p></div>';
-                    } else {
-                        echo '<div class="notice notice-error"><p>Invalid Form IDs provided.</p></div>';
-                    }
-                }
-            }
-        }
-
         ?>
         <div class="wrap">
             <h1>Gravity Forms Enhanced Tools</h1>
@@ -528,13 +545,13 @@ class GravityForms_Enhanced_Tools {
                 <a href="?page=gf-enhanced-tools&tab=spam-terms" class="nav-tab <?php echo $active_tab === 'spam-terms' ? 'nav-tab-active' : ''; ?>">Spam Terms</a>
                 <a href="?page=gf-enhanced-tools&tab=docs" class="nav-tab <?php echo $active_tab === 'docs' ? 'nav-tab-active' : ''; ?>">Documentation</a>
             </h2>
-
             <?php if ($active_tab === 'settings') : ?>
                 <form method="post" action="options.php">
                     <?php 
                     settings_fields('gf_enhanced_tools_group'); 
                     do_settings_sections('gf_enhanced_tools_group');
                     ?>
+    
                     <table class="form-table">
                         <tr>
                             <th>Email Domain Validator</th>
@@ -544,22 +561,31 @@ class GravityForms_Enhanced_Tools {
                                 Enable email domain validation
                             </td>
                         </tr>
+    
                         <tr>
-                            <th>Form IDs</th>
+                            <th>Form & Field Mapping</th>
                             <td>
-                                <input type="text" name="gf_enhanced_tools_settings[form_ids]" 
+                                <select id="gfet_form_selector" multiple="multiple" style="width:100%;">
+                                    <?php
+                                    $saved_form_ids = explode(',', $settings['form_ids'] ?? '');
+                                    foreach (GFAPI::get_forms(true) as $form) {
+                                        $selected = in_array($form['id'], $saved_form_ids) ? 'selected' : '';
+                                        echo "<option value='{$form['id']}' {$selected}>{$form['title']} (ID {$form['id']})</option>";
+                                    }
+                                    ?>
+                                </select>
+    
+                                <input type="hidden" name="gf_enhanced_tools_settings[form_ids]" id="gfet_form_ids"
                                        value="<?php echo esc_attr($settings['form_ids']); ?>">
-                                <p class="description">Enter Form IDs separated by commas (e.g., 152, 153, 154)</p>
+    
+                                <input type="hidden" name="gf_enhanced_tools_field_ids_map" id="gfet_field_ids"
+                                       value='<?php echo esc_attr(get_option('gf_enhanced_tools_field_ids_map', '{}')); ?>'>
+    
+                                <div id="gfet_field_selector_container"></div>
+                                <p class="description">Select one or more forms and then choose the field used for email validation in each.</p>
                             </td>
                         </tr>
-                        <tr>
-                            <th>Field ID</th>
-                            <td>
-                                <input type="number" name="gf_enhanced_tools_settings[field_id]" 
-                                       value="<?php echo esc_attr($settings['field_id']); ?>">
-                                <p class="description">The email field ID to validate (applies to all specified forms)</p>
-                            </td>
-                        </tr>
+    
                         <tr>
                             <th>Validation Mode</th>
                             <td>
@@ -573,6 +599,7 @@ class GravityForms_Enhanced_Tools {
                                 </p>
                             </td>
                         </tr>
+    
                         <tr>
                             <th>Restricted Domains</th>
                             <td>
@@ -582,6 +609,7 @@ class GravityForms_Enhanced_Tools {
                                 <p class="description">Enter one domain per line.</p>
                             </td>
                         </tr>
+    
                         <tr>
                             <th>Validation Message</th>
                             <td>
@@ -592,6 +620,7 @@ class GravityForms_Enhanced_Tools {
                                 <p class="description">Custom message for invalid emails. Use %s for the domain.</p>
                             </td>
                         </tr>
+    
                         <tr>
                             <th>Hide Validation Message</th>
                             <td>
@@ -600,6 +629,7 @@ class GravityForms_Enhanced_Tools {
                                 Hide the validation message for restricted domains
                             </td>
                         </tr>
+    
                         <tr>
                             <th>Spam Filter</th>
                             <td>
@@ -608,6 +638,7 @@ class GravityForms_Enhanced_Tools {
                                 Enable spam filtering using WordPress Disallowed Comment Keys
                             </td>
                         </tr>
+    
                         <tr>
                             <th>Check All Fields for Spam</th>
                             <td>
@@ -616,6 +647,7 @@ class GravityForms_Enhanced_Tools {
                                 Check all form fields for spam terms
                             </td>
                         </tr>
+    
                         <tr>
                             <th>Entry Block Terms</th>
                             <td>
@@ -625,6 +657,7 @@ class GravityForms_Enhanced_Tools {
                                 <p class="description">Enter one term per line to block submissions.</p>
                             </td>
                         </tr>
+    
                         <tr>
                             <th>Spam Predictor</th>
                             <td>
@@ -633,6 +666,7 @@ class GravityForms_Enhanced_Tools {
                                 Enable spam prediction using past spam submissions
                             </td>
                         </tr>
+    
                         <tr>
                             <th>Spam Predictor Threshold</th>
                             <td>
@@ -641,98 +675,20 @@ class GravityForms_Enhanced_Tools {
                                        min="1">
                                 <p class="description">
                                     Minimum frequency a term/phrase must appear in spam submissions to be blocked (default: 3). 
-                                    <br><strong>Lower values (e.g., 1-2):</strong> Catch more spam but may flag legitimate submissions (e.g., "contact us").
-                                    <br><strong>Higher values (e.g., 5+):</strong> More conservative, reducing false positives.
-                                    <br>Test with your form data; start at 3 and adjust.
+                                    <br><strong>Lower values (e.g., 1–2):</strong> Catches more spam but may flag legit content.<br>
+                                    <strong>Higher values (e.g., 5+):</strong> More conservative, fewer false positives.
                                 </p>
                             </td>
                         </tr>
                     </table>
+    
                     <?php submit_button(); ?>
                 </form>
-            <?php elseif ($active_tab === 'spam-terms') : ?>
-                <h2>Spam Terms Database</h2>
-                <form method="post" style="margin-bottom: 20px;">
-                    <?php wp_nonce_field('gfet_spam_terms_action'); ?>
-                    <input type="hidden" name="gfet_action" value="add_term">
-                    <label for="new_term">Add New Spam Term/Phrase:</label>
-                    <input type="text" name="new_term" id="new_term" style="width: 300px;" placeholder="e.g., buy now cheap">
-                    <label for="new_term_frequency">Initial Frequency:</label>
-                    <input type="number" name="new_term_frequency" id="new_term_frequency" value="3" min="1" style="width: 60px;">
-                    <label for="form_id">Form ID:</label>
-                    <input type="number" name="form_id" id="form_id" style="width: 60px;" placeholder="e.g., 152">
-                    <input type="submit" value="Add Term" class="button">
-                    <p class="description">Enter a term or phrase (min 3 chars, max 5 words), set frequency, and specify Form ID.</p>
-                </form>
-                <form method="post" style="margin-bottom: 20px;">
-                    <?php wp_nonce_field('gfet_spam_terms_action'); ?>
-                    <input type="hidden" name="gfet_action" value="update_historical">
-                    <input type="submit" value="Update Historical Spam Terms" class="button">
-                    <p class="description">Update terms/phrases from historical spam entries for configured forms.</p>
-                </form>
-                <form method="post" style="margin-bottom: 20px;">
-                    <?php wp_nonce_field('gfet_spam_terms_action'); ?>
-                    <input type="hidden" name="gfet_action" value="bulk_delete">
-                    <label for="bulk_form_ids">Bulk Delete Terms (Optional Form IDs):</label>
-                    <input type="text" name="bulk_form_ids" id="bulk_form_ids" style="width: 200px;" placeholder="e.g., 152, 153">
-                    <input type="submit" value="Bulk Delete Terms" class="button" onclick="return confirm('Are you sure you want to delete these spam terms? Leave Form IDs blank to delete all terms.');">
-                    <p class="description">Enter Form IDs (comma-separated) to delete terms for specific forms, or leave blank to delete all terms.</p>
-                </form>
-                <?php
-                global $wpdb;
-                $table_name = $wpdb->prefix . 'gf_spam_terms';
-
-                if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
-                    $terms = $wpdb->get_results("SELECT id, term, form_id, is_phrase, frequency, last_seen FROM $table_name ORDER BY form_id, frequency DESC", ARRAY_A);
-                    if ($terms) {
-                        echo '<table class="widefat"><thead><tr><th>Term/Phrase</th><th>Form ID</th><th>Type</th><th>Frequency</th><th>Last Seen</th><th>Actions</th></tr></thead><tbody>';
-                        foreach ($terms as $term) {
-                            echo '<tr>';
-                            echo '<td>' . esc_html($term['term']) . '</td>';
-                            echo '<td>' . esc_html($term['form_id']) . '</td>';
-                            echo '<td>' . ($term['is_phrase'] ? 'Phrase' : 'Word') . '</td>';
-                            echo '<td>' . esc_html($term['frequency']) . '</td>';
-                            echo '<td>' . esc_html($term['last_seen']) . '</td>';
-                            echo '<td>';
-                            echo '<form method="post" style="display:inline;">';
-                            wp_nonce_field('gfet_spam_terms_action');
-                            echo '<input type="hidden" name="gfet_action" value="edit_term">';
-                            echo '<input type="hidden" name="term_id" value="' . esc_attr($term['id']) . '">';
-                            echo '<input type="number" name="new_frequency" value="' . esc_attr($term['frequency']) . '" min="0" style="width:60px;">';
-                            echo '<input type="submit" value="Update" class="button">';
-                            echo '</form>';
-                            echo ' | ';
-                            echo '<form method="post" style="display:inline;">';
-                            wp_nonce_field('gfet_spam_terms_action');
-                            echo '<input type="hidden" name="gfet_action" value="delete_term">';
-                            echo '<input type="hidden" name="term_id" value="' . esc_attr($term['id']) . '">';
-                            echo '<input type="submit" value="Delete" class="button" onclick="return confirm(\'Are you sure you want to delete this term/phrase?\');">';
-                            echo '</form>';
-                            echo '</td>';
-                            echo '</tr>';
-                        }
-                        echo '</tbody></table>';
-                    } else {
-                        echo '<p>No spam terms or phrases recorded yet.</p>';
-                    }
-                } else {
-                    echo '<p class="error" style="color: red;">Spam terms table not found. Please reactivate the plugin to create it.</p>';
-                }
-                ?>
-            <?php elseif ($active_tab === 'docs') : ?>
-                <?php
-                $plugin_dir = plugin_dir_path(__FILE__);
-                $readme_file = $plugin_dir . 'documentation.txt';
-                if (file_exists($readme_file)) {
-                    echo '<pre>' . esc_html(file_get_contents($readme_file)) . '</pre>';
-                } else {
-                    echo '<p class="error" style="color: red;">documentation.txt file not found.</p>';
-                }
-                ?>
             <?php endif; ?>
         </div>
         <?php
     }
+
 }
 
 // Email Validator Class

@@ -1,0 +1,12 @@
+.gfet-field-wrap {
+    margin: 1em 0;
+}
+.gfet-field-wrap label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5em;
+}
+.gfet-field-wrap select {
+    width: 100%;
+    max-width: 400px;
+}
