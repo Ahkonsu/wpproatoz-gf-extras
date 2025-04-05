@@ -23,8 +23,8 @@
 /*
 Plugin Name: WPProAtoZ Enhanced Tools for Gravity Forms
 Plugin URI: https://wpproatoz.com
-Description: Enhanced Tools for Gravity Forms is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, and spam prediction using past submissions. Restrict or allow submissions by email domain, block spam with Disallowed Comment Keys, and predict spam with a custom terms database.
-Version: 2.1
+Description: Enhanced Tools for Gravity Forms is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction using past submissions. Restrict or allow submissions by email domain, block spam with Disallowed Comment Keys, enforce text field length, and predict spam with a custom terms database.
+Version: 2.2
 Requires at least: 6.0
 Requires PHP: 8.0
 Author: WPProAtoZ.com
@@ -39,15 +39,20 @@ Requires Plugins: gravityforms
 # Gravity Forms Enhanced Tools
 
 ## Description
-Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, and spam prediction capabilities. It allows you to restrict or allow form submissions based on email domains, block spam entries using WordPress’s Disallowed Comment Keys, and predict future spam based on terms and phrases from past spam submissions.
+Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction capabilities. It allows you to restrict or allow form submissions based on email domains, block spam entries using WordPress’s Disallowed Comment Keys, enforce minimum lengths for text fields, and predict future spam based on terms and phrases from past spam submissions.
 
 ## Features
 
 ### Email Domain Validator
 - **Restrict Domains**: Limit submissions to specific domains or ban specific domains.
-- **Multiple Forms**: Apply validation to one or more Gravity Forms by specifying Form IDs.
+- **Multiple Forms & Fields**: Apply validation to one or more Gravity Forms and their fields via a mapping interface.
 - **Custom Messages**: Set a custom validation message or hide it entirely for silent failure.
 - **Flexible Configuration**: Choose between "Limit" (whitelist) or "Ban" (blacklist) modes.
+
+### Minimum Character Length
+- **Enforce Length**: Set a minimum character requirement for selected text fields.
+- **Field Mapping**: Apply to specific text fields within configured forms.
+- **Customizable**: Enable/disable and set the minimum length (default: 5 characters).
 
 ### Spam Filter
 - **Disallowed Keys Integration**: Uses WordPress’s Disallowed Comment Keys to flag spam entries.
@@ -81,15 +86,20 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 
 ### Configuring Email Domain Validator
 1. **Enable**: Check "Email Domain Validator" to activate (enabled by default).
-2. **Form IDs**: Enter one or more Gravity Form IDs (comma-separated, e.g., `152, 153`) to apply validation to specific forms.
-3. **Field ID**: Enter the ID of the email field to validate (applies to all specified forms).
-4. **Validation Mode**:
+2. **Form & Field Mapping**: Select forms and their email fields to validate. Email fields are used for domain checks.
+3. **Validation Mode**:
    - **Limit to these domains**: Only allows emails from domains listed in "Restricted Domains" (e.g., `gmail.com` only allows `user@gmail.com`).
    - **Ban these domains**: Blocks emails from listed domains, allows all others (e.g., bans `gmail.com`, allows `user@yahoo.com`).
-5. **Restricted Domains**: Enter one domain per line (e.g., `gmail.com`, `hotmail.com`). These are the domains affected by the chosen mode.
-6. **Validation Message**: Customize the message shown for invalid emails (use `%s` for the domain). Leave blank for default: "Oh no! `<strong>%s</strong>` email accounts are not eligible for this form."
-7. **Hide Validation Message**: Check to suppress the message, making the form fail silently for restricted domains.
-8. **Save**: Click "Save Changes" to apply settings.
+4. **Restricted Domains**: Enter one domain per line (e.g., `gmail.com`, `hotmail.com`). These are the domains affected by the chosen mode.
+5. **Validation Message**: Customize the message shown for invalid emails (use `%s` for the domain). Leave blank for default: "Oh no! `<strong>%s</strong>` email accounts are not eligible for this form."
+6. **Hide Validation Message**: Check to suppress the message, making the form fail silently for restricted domains.
+7. **Save**: Click "Save Changes" to apply settings.
+
+### Configuring Minimum Character Length
+1. **Enable**: Check "Minimum Character Length" to activate (disabled by default).
+2. **Form & Field Mapping**: Select forms and their text fields to enforce the minimum length (same mapping as email validator).
+3. **Set Length**: Enter the minimum number of characters required (default: 5).
+4. **Save**: Click "Save Changes" to apply settings.
 
 ### Configuring Spam Filter
 1. **Enable**: Check "Spam Filter" to activate (enabled by default).
@@ -133,6 +143,7 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
   - "Limit" mode: Rejected unless listed.
   - "Ban" mode: Rejected if listed.
   - Check "Hide Validation Message" to ensure silent failure.
+- **Minimum Character Length**: Select a text field, set min length to 5, submit with "abc" (should fail) and "abcde" (should pass).
 - **Spam Filter**: Add a term (e.g., `spam`) to "Entry Block Terms," save, then submit a form with that term in a field:
   - With "Check All Fields" off, only specific fields trigger it.
   - With it on, any field triggers it.
@@ -163,17 +174,22 @@ Contact support@wpproatoz.com for assistance.
 You can view a demo of the plugin in action at [WPProAtoZ.com](https://wpproatoz.com/plugins).
 
 ## Changelog
+### 2.2
+- **Minimum Character Length**: Added option to enforce a minimum character length for text fields, configurable via the admin interface.
+- **Enhanced Admin UI**: Improved settings page with clear section headers ("Domain Validator and Minimum Characters," "Spam Filter and Predictor") and updated field mapping description.
+- **Bug Fix**: Resolved error in "Update Historical Spam Terms" function when spam form IDs were undefined.
+
 ### 2.1
 - **Bulk Delete**: Added ability to delete all spam terms or terms for specific Form IDs in one action from the "Spam Terms" tab.
 - **Stabilized Schema Updates**: Improved table update logic to ensure `is_phrase` column is added correctly during upgrades.
 
 ### 2.0
 - **Major Update**: Added Spam Predictor feature:
-- Collects single words and phrases (up to 5 words) from spam-marked submissions.
-- Form-specific tracking with `form_id`.
-- Manual term/phrase management (add, edit, delete).
-- Automatic cleanup of terms unseen for 90 days.
-- Integration of historical spam entries from Gravity Forms.
+  - Collects single words and phrases (up to 5 words) from spam-marked submissions.
+  - Form-specific tracking with `form_id`.
+  - Manual term/phrase management (add, edit, delete).
+  - Automatic cleanup of terms unseen for 90 days.
+  - Integration of historical spam entries from Gravity Forms.
 - Enhanced settings with better defaults and version checking for upgrades.
 - Consolidated previous updates (1.0-1.9) into this release.
 
