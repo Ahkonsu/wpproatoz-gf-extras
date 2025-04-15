@@ -1,7 +1,7 @@
 # Gravity Forms Enhanced Tools
 # WPProAtoZ Enhanced Tools for Gravity Forms
 
-![Plugin Version](https://img.shields.io/badge/version-2.2-blue.svg) ![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg) ![PHP](https://img.shields.io/badge/PHP-8.0%2B-blue.svg) ![License](https://img.shields.io/badge/license-GPLv2-green.svg)
+![Plugin Version](https://img.shields.io/badge/version-2.3-blue.svg) ![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg) ![PHP](https://img.shields.io/badge/PHP-8.0%2B-blue.svg) ![License](https://img.shields.io/badge/license-GPLv2-green.svg)
 
 A robust WordPress plugin that extends Gravity Forms with advanced email domain validation, minimum character length enforcement, spam filtering, and spam prediction capabilities.
 
@@ -9,7 +9,7 @@ A robust WordPress plugin that extends Gravity Forms with advanced email domain 
 
 ## Overview
 
-The **WPProAtoZ Enhanced Tools for Gravity Forms** plugin supercharges your Gravity Forms experience by adding powerful tools to manage submissions effectively. Restrict or allow entries based on email domains, enforce minimum text field lengths, block spam with WordPress’s Disallowed Comment Keys, and predict future spam using a custom database of terms from past submissions—all from an intuitive admin interface.
+The **WPProAtoZ Enhanced Tools for Gravity Forms** plugin supercharges your Gravity Forms experience by adding powerful tools to manage submissions effectively. Restrict or allow entries based on email domains, enforce minimum text field lengths, block spam with WordPressâ€™s Disallowed Comment Keys, and predict future spam using a custom database of terms from past submissionsâ€”all from an intuitive admin interface.
 
 Developed by [WPProAtoZ](https://wpproatoz.com), this plugin is designed for administrators seeking precision and control over Gravity Forms data.
 
