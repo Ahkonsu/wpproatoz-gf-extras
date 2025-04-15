@@ -1,4 +1,4 @@
-# Gravity Forms Enhanced Tools
+# Enhanced Tools for Gravity Forms 
 # WPProAtoZ Enhanced Tools for Gravity Forms
 
 ![Plugin Version](https://img.shields.io/badge/version-2.3-blue.svg) ![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg) ![PHP](https://img.shields.io/badge/PHP-8.0%2B-blue.svg) ![License](https://img.shields.io/badge/license-GPLv2-green.svg)
