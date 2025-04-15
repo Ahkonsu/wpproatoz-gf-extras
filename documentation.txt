@@ -1,7 +1,9 @@
 Gravity Forms Enhanced Tools - Documentation
 
+Version: 2.3
+
 Description:
-Gravity Forms Enhanced Tools extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction features. It allows you to restrict or allow form submissions based on email domains, block spam using WordPress’s Disallowed Comment Keys, enforce minimum lengths for text fields, and predict future spam using a custom database of terms and phrases from past spam submissions.
+Gravity Forms Enhanced Tools extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction features. It allows you to restrict or allow form submissions based on email domains, block spam using WordPress’s Disallowed Comment Keys, enforce minimum lengths for text and textarea fields, and predict future spam using a custom database of terms and phrases from past spam submissions.
 
 Installation:
 1. Upload the "wpproatoz-gf-extras" folder to your "/wp-content/plugins/" directory.
@@ -20,7 +22,7 @@ Usage:
 
 2. Email Domain Validator:
    - Enable: Check "Email Domain Validator" (on by default).
-   - Form & Field Mapping: Select forms and email fields to validate.
+   - Form & Field Mapping: Select forms and email fields to validate under "Enable domain validation and choose fields".
    - Validation Mode:
      - "Limit to these domains": Only allows listed domains (e.g., "gmail.com").
      - "Ban these domains": Blocks listed domains, allows others.
@@ -31,7 +33,7 @@ Usage:
 
 3. Minimum Character Length:
    - Enable: Check "Minimum Character Length" (off by default).
-   - Form & Field Mapping: Select forms and text fields to enforce the minimum length.
+   - Form & Field Mapping: Select forms and text or textarea fields to enforce the minimum length under "Enable Minimum Character Field Mapping and choose fields".
    - Set Length: Enter the minimum number of characters (default: 5).
    - Save changes to apply.
 
@@ -44,8 +46,8 @@ Usage:
 5. Spam Predictor:
    - Enable: Check "Spam Predictor" (off by default).
    - Spam Predictor Threshold: Set the minimum frequency a term/phrase must appear in spam submissions to be blocked (default: 3).
-     - Lower values (1-2): Catch more spam but may flag legitimate submissions (e.g., "contact us").
-     - Higher values (5+): More conservative, reducing false positives but possibly missing spam.
+     - Lower values (1-2): Catch more spam but may flag legitimate content (e.g., "contact us").
+     - Higher values (5+): More conservative, reducing false positives.
      - Start at 3 and adjust based on your form data.
    - Save changes to apply.
 
@@ -64,7 +66,7 @@ Managing Disallowed Comment Keys:
 
 Testing:
 - Email Validation: Submit a form with a restricted domain email (e.g., "test@gmail.com" if "gmail.com" is banned) to verify blocking or allowance.
-- Minimum Character Length: Set min length to 5, submit with "abc" (should fail) and "abcde" (should pass) in a mapped text field.
+- Minimum Character Length: Select a text or textarea field, set min length to 5, submit with "abc" (should fail) and "abcde" (should pass).
 - Spam Filter: Add a term (e.g., "spam") to "Entry Block Terms", then submit a form with that term to ensure it’s flagged as spam.
 - Spam Predictor: Enable the predictor, mark entries as spam in Gravity Forms, add a manual phrase (e.g., "buy now" with frequency 5), test submissions with that phrase, and use bulk delete to clear terms if needed.
 
@@ -75,3 +77,6 @@ Credits:
 Developed by WPProAtoZ.com.
 - Email Domain Validator based on GW_Email_Domain_Validator class.
 - Spam Filter originally developed by Nikki Stokes (https://thebizpixie.com).
+
+Notes:
+- Version 2.3 improves field persistence for email field mappings and fixes rendering issues in the minimum character field mapping selector, ensuring reliable configuration of text and textarea fields.

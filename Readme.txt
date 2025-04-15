@@ -24,7 +24,7 @@
 Plugin Name: WPProAtoZ Enhanced Tools for Gravity Forms
 Plugin URI: https://wpproatoz.com
 Description: Enhanced Tools for Gravity Forms is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction using past submissions. Restrict or allow submissions by email domain, block spam with Disallowed Comment Keys, enforce text field length, and predict spam with a custom terms database.
-Version: 2.2
+Version: 2.3
 Requires at least: 6.0
 Requires PHP: 8.0
 Author: WPProAtoZ.com
@@ -39,23 +39,23 @@ Requires Plugins: gravityforms
 # Gravity Forms Enhanced Tools
 
 ## Description
-Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction capabilities. It allows you to restrict or allow form submissions based on email domains, block spam entries using WordPressâ€™s Disallowed Comment Keys, enforce minimum lengths for text fields, and predict future spam based on terms and phrases from past spam submissions.
+Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction capabilities. It allows you to restrict or allow form submissions based on email domains, block spam entries using WordPress’s Disallowed Comment Keys, enforce minimum lengths for text and textarea fields, and predict future spam based on terms and phrases from past spam submissions.
 
 ## Features
 
 ### Email Domain Validator
 - **Restrict Domains**: Limit submissions to specific domains or ban specific domains.
-- **Multiple Forms & Fields**: Apply validation to one or more Gravity Forms and their fields via a mapping interface.
+- **Multiple Forms & Fields**: Apply validation to one or more Gravity Forms and their email fields via a mapping interface.
 - **Custom Messages**: Set a custom validation message or hide it entirely for silent failure.
 - **Flexible Configuration**: Choose between "Limit" (whitelist) or "Ban" (blacklist) modes.
 
 ### Minimum Character Length
-- **Enforce Length**: Set a minimum character requirement for selected text fields.
-- **Field Mapping**: Apply to specific text fields within configured forms.
+- **Enforce Length**: Set a minimum character requirement for selected text and textarea fields.
+- **Field Mapping**: Apply to specific text or textarea fields within configured forms.
 - **Customizable**: Enable/disable and set the minimum length (default: 5 characters).
 
 ### Spam Filter
-- **Disallowed Keys Integration**: Uses WordPressâ€™s Disallowed Comment Keys to flag spam entries.
+- **Disallowed Keys Integration**: Uses WordPress’s Disallowed Comment Keys to flag spam entries.
 - **Field Flexibility**: Optionally check all form fields or limit to specific types (email, name, phone, company, message).
 - **Entry Blocking**: Add terms directly from the plugin to block spam submissions.
 
@@ -97,7 +97,7 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 
 ### Configuring Minimum Character Length
 1. **Enable**: Check "Minimum Character Length" to activate (disabled by default).
-2. **Form & Field Mapping**: Select forms and their text fields to enforce the minimum length (same mapping as email validator).
+2. **Form & Field Mapping**: Select forms and their text or textarea fields to enforce the minimum length.
 3. **Set Length**: Enter the minimum number of characters required (default: 5).
 4. **Save**: Click "Save Changes" to apply settings.
 
@@ -106,14 +106,14 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 2. **Check All Fields for Spam**:
    - **Unchecked**: Only checks email, name (First Name/Last Name), phone, company, and message fields for spam terms.
    - **Checked**: Scans all form fields (e.g., text, textarea, select) for spam terms.
-3. **Entry Block Terms**: Enter one term per line (e.g., `spam`, `viagra`) to block submissions containing these terms. These are added to WordPressâ€™s Disallowed Comment Keys when saved (if spam filter is enabled).
+3. **Entry Block Terms**: Enter one term per line (e.g., `spam`, `viagra`) to block submissions containing these terms. These are added to WordPress’s Disallowed Comment Keys when saved (if spam filter is enabled).
 4. **Save**: Click "Save Changes" to apply settings.
 
 ### Configuring Spam Predictor
 1. **Enable**: Check "Spam Predictor" to activate (disabled by default).
 2. **Spam Predictor Threshold**: Set the minimum frequency a term or phrase must appear in spam submissions to be blocked (default: 3).
-   - **Lower values (1-2)**: Catch more spam but may flag legitimate submissions (e.g., "contact us").
-   - **Higher values (5+)**: More conservative, reducing false positives but possibly missing spam.
+   - **Lower values (1-2)**: Catches more spam but may flag legitimate content (e.g., "contact us").
+   - **Higher values (5+)**: More conservative, fewer false positives.
    - Test with your form data; start at 3 and adjust based on results.
 3. **Save**: Click "Save Changes" to apply settings.
 
@@ -143,7 +143,7 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
   - "Limit" mode: Rejected unless listed.
   - "Ban" mode: Rejected if listed.
   - Check "Hide Validation Message" to ensure silent failure.
-- **Minimum Character Length**: Select a text field, set min length to 5, submit with "abc" (should fail) and "abcde" (should pass).
+- **Minimum Character Length**: Select a text or textarea field, set min length to 5, submit with "abc" (should fail) and "abcde" (should pass).
 - **Spam Filter**: Add a term (e.g., `spam`) to "Entry Block Terms," save, then submit a form with that term in a field:
   - With "Check All Fields" off, only specific fields trigger it.
   - With it on, any field triggers it.
@@ -151,6 +151,7 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 
 ## Debugging
 - Enable debugging in `wp-config.php`:
+
 - Check `wp-content/debug.log` for errors if issues arise.
 
 ## Support
@@ -170,6 +171,12 @@ Contact support@wpproatoz.com for assistance.
 You can view a demo of the plugin in action at [WPProAtoZ.com](https://wpproatoz.com/plugins).
 
 ## Changelog
+### 2.3
+- **Field Persistence Fix**: Resolved issue where selected field IDs in "Email Form & Field Mapping" were lost when saving other settings (e.g., "Hide Validation Message").
+- **Minimum Character Field Mapping Fix**: Fixed rendering of form and field selectors in "Minimum Character Field Mapping" to correctly display text and textarea fields.
+- **Improved Settings UI**: Reorganized settings page with clearer section headers ("Enable domain validation and choose fields", "Enable Minimum Character Field Mapping and choose fields") for better usability.
+- **Enhanced Debugging**: Added detailed logging for JavaScript and PHP to improve issue diagnosis.
+
 ### 2.2
 - **Minimum Character Length**: Added option to enforce a minimum character length for text fields, configurable via the admin interface.
 - **Enhanced Admin UI**: Improved settings page with clear section headers ("Domain Validator and Minimum Characters," "Spam Filter and Predictor") and updated field mapping description.
@@ -181,11 +188,11 @@ You can view a demo of the plugin in action at [WPProAtoZ.com](https://wpproatoz
 
 ### 2.0
 - **Major Update**: Added Spam Predictor feature:
-  - Collects single words and phrases (up to 5 words) from spam-marked submissions.
-  - Form-specific tracking with `form_id`.
-  - Manual term/phrase management (add, edit, delete).
-  - Automatic cleanup of terms unseen for 90 days.
-  - Integration of historical spam entries from Gravity Forms.
+- Collects single words and phrases (up to 5 words) from spam-marked submissions.
+- Form-specific tracking with `form_id`.
+- Manual term/phrase management (add, edit, delete).
+- Automatic cleanup of terms unseen for 90 days.
+- Integration of historical spam entries from Gravity Forms.
 - Enhanced settings with better defaults and version checking for upgrades.
 - Consolidated previous updates (1.0-1.9) into this release.
 
@@ -203,7 +210,3 @@ This plugin is licensed under the GPL v2 or later. For more information, please 
 
 ## Contributing
 Contributions are welcome! Feel free to fork the repository at https://github.com/Ahkonsu/wpproatoz-gf-extras, submit issues, or create pull requests.
-
----
-
-**Note:** This plugin uses credits to other code or coders as noted in the Credits section.
