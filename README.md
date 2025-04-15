@@ -9,7 +9,7 @@ A robust WordPress plugin that extends Gravity Forms with advanced email domain 
 
 ## Overview
 
-The **WPProAtoZ Enhanced Tools for Gravity Forms** plugin supercharges your Gravity Forms experience by adding powerful tools to manage submissions effectively. Restrict or allow entries based on email domains, enforce minimum text field lengths, block spam with WordPress’s Disallowed Comment Keys, and predict future spam using a custom database of terms from past submissions—all from an intuitive admin interface.
+The **WPProAtoZ Enhanced Tools for Gravity Forms** plugin supercharges your Gravity Forms experience by adding powerful tools to manage submissions effectively. Restrict or allow entries based on email domains, enforce minimum lengths for text and textarea fields, block spam with WordPress’s Disallowed Comment Keys, and predict future spam using a custom database of terms from past submissions—all from an intuitive admin interface.
 
 Developed by [WPProAtoZ](https://wpproatoz.com), this plugin is designed for administrators seeking precision and control over Gravity Forms data.
 
@@ -18,13 +18,13 @@ Developed by [WPProAtoZ](https://wpproatoz.com), this plugin is designed for adm
 ## Features
 
 - **Email Domain Validator**: Whitelist or blacklist domains, apply to multiple forms/fields, customize messages, and choose silent rejection.
-- **Minimum Character Length**: Enforce a configurable minimum length (default: 5) for selected text fields.
+- **Minimum Character Length**: Enforce a configurable minimum length (default: 5) for selected text and textarea fields.
 - **Spam Filter**: Block spam using Disallowed Comment Keys, with options to scan all fields or specific types (email, name, phone, etc.).
 - **Spam Predictor**: Build a form-specific spam term database, set frequency thresholds (default: 3), manage terms manually or in bulk, and integrate historical data.
 - **Multi-Form Support**: Target specific forms and fields via an easy-to-use mapping interface.
 - **Real-Time Management**: Add, edit, delete spam terms, and perform bulk actions directly in the admin panel.
 - **Auto-Cleanup**: Automatically removes spam terms unseen for 90 days via a daily cron job.
-- **User-Friendly UI**: Enhanced settings page with clear section headers and detailed descriptions.
+- **User-Friendly UI**: Enhanced settings page with clear section headers ("Enable domain validation and choose fields", "Enable Minimum Character Field Mapping and choose fields") for better usability.
 - **Dependency**: Requires the Gravity Forms plugin.
 
 ---
