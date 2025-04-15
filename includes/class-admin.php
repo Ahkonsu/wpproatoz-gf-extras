@@ -13,6 +13,8 @@ class GFET_Admin {
         $this->common_words = $common_words;
         $this->spam_terms = $spam_terms;
 
+        error_log('GFET: Admin class initialized at ' . date('Y-m-d H:i:s'));
+
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'register_settings'));
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), array($this, 'add_settings_link'));
@@ -40,6 +42,12 @@ class GFET_Admin {
         register_setting(
             'gf_enhanced_tools_group',
             'gf_enhanced_tools_field_ids_map',
+            array($this, 'sanitize_field_map')
+        );
+
+        register_setting(
+            'gf_enhanced_tools_group',
+            'gf_enhanced_tools_min_length_field_ids_map',
             array($this, 'sanitize_field_map')
         );
 
@@ -74,7 +82,7 @@ class GFET_Admin {
         $output['spam_predictor_threshold']  = isset($input['spam_predictor_threshold']) ? max(1, intval($input['spam_predictor_threshold'])) : 3;
         $output['min_length']                = isset($input['min_length']) ? max(1, intval($input['min_length'])) : 5;
 
-        error_log('Sanitized settings: ' . print_r($output, true));
+        error_log('GFET: Sanitized settings: ' . print_r($output, true));
         return $output;
     }
 
@@ -83,31 +91,38 @@ class GFET_Admin {
 
         $output['spam_form_ids'] = sanitize_text_field($input['spam_form_ids'] ?? '');
 
-        error_log('Sanitized spam settings: ' . print_r($output, true));
+        error_log('GFET: Sanitized spam settings: ' . print_r($output, true));
         return $output;
     }
 
     public function sanitize_field_map($input) {
-        error_log('[GFET] Raw input to sanitize_field_map: ' . print_r($input, true));
+        $option_name = 'gf_enhanced_tools_field_ids_map';
+        error_log("GFET: Sanitizing field map, input: " . print_r($input, true));
 
         if (empty($input) || !is_string($input)) {
-            error_log('[GFET] Field map input empty or not a string, returning []');
-            return '[]'; // Return empty array if input is empty or invalid
+            error_log("GFET: Field map input empty or not a string, returning existing option for $option_name");
+            return get_option($option_name, '{}');
         }
 
         $decoded = json_decode(stripslashes($input), true);
 
         if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
-            error_log('[GFET] JSON error or not an array: ' . json_last_error_msg());
-            return '[]'; // Return empty array on error
+            error_log("GFET: JSON error or not an array: " . json_last_error_msg());
+            return get_option($option_name, '{}');
         }
 
         $sanitized = array_map(function($formFields) {
             return is_array($formFields) ? array_map('intval', $formFields) : [];
         }, $decoded);
 
+        $is_empty = empty(array_filter($sanitized, function($fields) { return !empty($fields); }));
+        if ($is_empty) {
+            error_log("GFET: Sanitized field map is empty, preserving existing option for $option_name");
+            return get_option($option_name, '{}');
+        }
+
         $result = wp_json_encode($sanitized);
-        error_log('[GFET] Sanitized field map: ' . $result);
+        error_log("GFET: Sanitized field map for $option_name: " . $result);
         return $result;
     }
 
@@ -147,18 +162,52 @@ class GFET_Admin {
     public function ajax_get_form_fields() {
         check_ajax_referer('gfet_ajax', 'nonce');
         $form_id = absint($_POST['form_id']);
+        $field_type = sanitize_text_field($_POST['field_type'] ?? 'email');
         $form = GFAPI::get_form($form_id);
         $fields = [];
 
+        error_log("GFET: AJAX get_form_fields called for form_id=$form_id, field_type=$field_type");
+
+        if (!$form) {
+            error_log("GFET: Failed to retrieve form ID $form_id");
+            wp_send_json_error('Form not found');
+            return;
+        }
+
+        $all_field_types = [];
         foreach ($form['fields'] as $field) {
+            $input_type = RGFormsModel::get_input_type($field);
+            $all_field_types[] = "ID {$field->id}, label=" . ($field->label ?? 'No label') . ", type=$input_type";
+        }
+        error_log("GFET: All fields in form $form_id: " . implode('; ', $all_field_types));
+
+        foreach ($form['fields'] as $field) {
+            $input_type = RGFormsModel::get_input_type($field);
+            error_log("GFET: Checking field ID {$field->id}, label=" . ($field->label ?? 'No label') . ", input_type=$input_type");
+
             if (!empty($field->label)) {
-                $fields[] = [
-                    'id' => $field->id,
-                    'label' => $field->label,
-                ];
+                if ($field_type === 'email' && $input_type === 'email') {
+                    $fields[] = [
+                        'id' => $field->id,
+                        'label' => $field->label,
+                        'type' => $input_type
+                    ];
+                } elseif ($field_type === 'text') {
+                    // Temporary debug: include all fields
+                    $fields[] = [
+                        'id' => $field->id,
+                        'label' => $field->label,
+                        'type' => $input_type
+                    ];
+                }
             }
         }
 
+        if (empty($fields)) {
+            error_log("GFET: No fields matched field_type=$field_type for form_id=$form_id");
+        }
+
+        error_log('GFET: Returning fields: ' . print_r($fields, true));
         wp_send_json_success($fields);
     }
 
@@ -182,10 +231,8 @@ class GFET_Admin {
                     settings_fields('gf_enhanced_tools_group'); 
                     do_settings_sections('gf_enhanced_tools_group');
                     ?>
-    
-                    <h2 style="font-size: 1.5em; font-weight: bold;">Domain Validator and Minimum Characters</h2>
-                    <p>Restrict submissions by email domain and enforce a minimum character length for text fields.</p>
 
+                    <h2>Enable domain validation and choose fields</h2>
                     <table class="form-table">
                         <tr>
                             <th>Email Domain Validator</th>
@@ -197,7 +244,7 @@ class GFET_Admin {
                         </tr>
     
                         <tr>
-                            <th>Email Form & Field Mapping</th>
+                            <th>Email Form & Field Mapping for domain validation</th>
                             <td>
                                 <select id="gfet_form_selector" multiple="multiple" style="width:100%;">
                                     <?php
@@ -213,10 +260,10 @@ class GFET_Admin {
                                        value="<?php echo esc_attr($settings['form_ids'] ?? ''); ?>">
     
                                 <input type="hidden" name="gf_enhanced_tools_field_ids_map" id="gfet_field_ids"
-                                       value='<?php echo esc_attr(get_option('gf_enhanced_tools_field_ids_map', '[]')); ?>'>
+                                       value='<?php echo esc_attr(get_option('gf_enhanced_tools_field_ids_map', '{}')); ?>'>
     
                                 <div id="gfet_field_selector_container"></div>
-                                <p class="description">Select one or more forms and their fields. Email fields are used for domain banning/allowing; text fields enforce the minimum character length (if enabled below).</p>
+                                <p class="description">Select forms and their email fields for domain validation.</p>
                             </td>
                         </tr>
     
@@ -263,6 +310,19 @@ class GFET_Admin {
                                 Hide the validation message for restricted domains
                             </td>
                         </tr>
+                    </table>
+
+                    <h2>Enable Minimum Character Field Mapping and choose fields</h2>
+                    <table class="form-table">
+                        <tr>
+                            <th>Minimum Character Field Mapping</th>
+                            <td>
+                                <div id="gfet_min_length_field_selector_container"></div>
+                                <input type="hidden" name="gf_enhanced_tools_min_length_field_ids_map" id="gfet_min_length_field_ids"
+                                       value='<?php echo esc_attr(get_option('gf_enhanced_tools_min_length_field_ids_map', '{}')); ?>'>
+                                <p class="description">Select text fields to enforce minimum character length (requires Minimum Character Length enabled below).</p>
+                            </td>
+                        </tr>
 
                         <tr>
                             <th>Minimum Character Length</th>
@@ -274,7 +334,7 @@ class GFET_Admin {
                                 <input type="number" name="gf_enhanced_tools_settings[min_length]" 
                                        value="<?php echo esc_attr($settings['min_length'] ?? '5'); ?>" 
                                        min="1" style="margin-top: 10px;">
-                                <p class="description">Set the minimum number of characters required for text fields selected in "Email Form & Field Mapping".</p>
+                                <p class="description">Set the minimum number of characters required for text fields selected in "Minimum Character Field Mapping".</p>
                             </td>
                         </tr>
                     </table>
@@ -440,7 +500,7 @@ class GFET_Admin {
                                value="<?php echo esc_attr($spam_settings['spam_form_ids'] ?? ''); ?>">
 
                         <input type="hidden" name="gf_enhanced_tools_spam_field_ids_map" id="gfet_spam_field_ids"
-                               value='<?php echo esc_attr(get_option('gf_enhanced_tools_spam_field_ids_map', '[]')); ?>'>
+                               value='<?php echo esc_attr(get_option('gf_enhanced_tools_spam_field_ids_map', '{}')); ?>'>
 
                         <div id="gfet_spam_field_selector_container"></div>
                         <p class="description">Select one or more forms and then choose the fields to monitor for spam terms in each.</p>

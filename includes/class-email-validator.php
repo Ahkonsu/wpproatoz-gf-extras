@@ -25,20 +25,38 @@ class GFET_Email_Validator {
     }
 
     public function validate($validation_result) {
+        error_log('GFET Email Validator: Validating form ID ' . $validation_result['form']['id']);
         $form = $validation_result['form'];
         foreach ($form['fields'] as &$field) {
             if (!method_exists('RGFormsModel', 'get_input_type') || 
-                RGFormsModel::get_input_type($field) != 'email') continue;
-            if ($this->args['field_id'] && !in_array($field->id, $this->args['field_id'])) continue;
+                RGFormsModel::get_input_type($field) != 'email') {
+                error_log('GFET Email Validator: Skipping field ID ' . $field->id . ' (not email)');
+                continue;
+            }
+            if ($this->args['field_id'] && !in_array($field->id, $this->args['field_id'])) {
+                error_log('GFET Email Validator: Skipping field ID ' . $field->id . ' (not in field_ids)');
+                continue;
+            }
             
             $page_number = class_exists('GFFormDisplay') ? GFFormDisplay::get_source_page($form['id']) : 0;
-            if ($page_number > 0 && $field->pageNumber != $page_number) continue;
+            if ($page_number > 0 && $field->pageNumber != $page_number) {
+                error_log('GFET Email Validator: Skipping field ID ' . $field->id . ' (wrong page)');
+                continue;
+            }
             if (method_exists('GFFormsModel', 'is_field_hidden') && 
-                GFFormsModel::is_field_hidden($form, $field, array())) continue;
+                GFFormsModel::is_field_hidden($form, $field, array())) {
+                error_log('GFET Email Validator: Skipping field ID ' . $field->id . ' (hidden)');
+                continue;
+            }
 
             $domain = $this->get_email_domain($field);
-            if ($this->is_domain_valid($domain) || empty($domain)) continue;
+            error_log('GFET Email Validator: Checking domain ' . $domain . ' for field ID ' . $field->id);
+            if ($this->is_domain_valid($domain) || empty($domain)) {
+                error_log('GFET Email Validator: Domain ' . $domain . ' is valid or empty');
+                continue;
+            }
 
+            error_log('GFET Email Validator: Domain ' . $domain . ' is invalid');
             $validation_result['is_valid'] = false;
             $field['failed_validation'] = true;
             if ($this->args['hide_validation_message'] !== 'on') {

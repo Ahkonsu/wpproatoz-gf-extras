@@ -1,0 +1,29 @@
+Folder PATH listing for volume 10TB Data Drv
+Volume serial number is E44B-FFF3
+F:\DROPBOX\JOHNS-GITHUB\WPPROATOZ-GF-EXTRAS
+¦   diagram.png
+¦   directory-tree.txt
+¦   documentation.txt
+¦   gravity-forms-enhanced-tools.php
+¦   LICENSE
+¦   README.md
+¦   Readme.txt
+¦   screenshot1.png
+¦   screenshot2.png
+¦   starter-spam-terms.txt
+¦   
+¦               
++---assets
+¦   +---css
+¦   ¦       admin_fields.css
+¦   ¦       
+¦   +---js
+¦           admin_fields.js
+¦           
++---includes
+¦       class-admin.php
+¦       class-ajax-handler.php
+¦       class-email-validator.php
+¦       class-spam-terms.php
+¦       helpers.php
+¦     

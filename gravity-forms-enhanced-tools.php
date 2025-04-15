@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms Enhanced Tools from WPProAtoZ 
 Plugin URI: https://wpproatoz.com
 Description: Enhanced Tools for Gravity Forms is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction using past submissions. Restrict or allow submissions by email domain, block spam with Disallowed Comment Keys, enforce text field length, and predict spam with a custom terms database.
-Version: 2.2
+Version: 2.3
 Requires at least: 6.0
 Requires PHP: 8.0
 Author: WPProAtoZ.com
@@ -183,10 +183,18 @@ class GravityForms_Enhanced_Tools {
             : __('Oh no! <strong>%s</strong> email accounts are not eligible for this form.', 'gf-enhanced-tools');
         $hide_validation_message = $this->settings['hide_validation_message'] ?? 'off';
 
+        $field_ids_map = json_decode(get_option('gf_enhanced_tools_field_ids_map', '{}'), true);
+
         foreach ($form_ids as $form_id) {
+            $field_ids = isset($field_ids_map[$form_id]) ? array_map('intval', $field_ids_map[$form_id]) : [];
+            if (empty($field_ids)) {
+                error_log('GFET Email Validator: No field IDs for form ID ' . $form_id);
+                continue; // Skip if no fields selected
+            }
+
             $validator = new GFET_Email_Validator(array(
                 'form_id'            => $form_id,
-                'field_id'           => intval($this->settings['field_id']),
+                'field_id'           => $field_ids,
                 'domains'            => $domains,
                 'validation_message' => $validation_message,
                 'mode'               => $this->settings['mode'],
@@ -202,7 +210,7 @@ class GravityForms_Enhanced_Tools {
             return $validation_result; // Skip if form isn’t selected
         }
 
-        $field_ids_map = json_decode(get_option('gf_enhanced_tools_field_ids_map', '{}'), true);
+        $field_ids_map = json_decode(get_option('gf_enhanced_tools_min_length_field_ids_map', '{}'), true);
         $field_ids = isset($field_ids_map[$form['id']]) ? array_map('intval', $field_ids_map[$form['id']]) : [];
         if (empty($field_ids)) {
             return $validation_result; // No fields to validate
