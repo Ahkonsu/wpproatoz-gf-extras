@@ -39,7 +39,7 @@ Requires Plugins: gravityforms
 # Gravity Forms Enhanced Tools
 
 ## Description
-Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction capabilities. It allows you to restrict or allow form submissions based on email domains, block spam entries using WordPress’s Disallowed Comment Keys, enforce minimum lengths for text fields, and predict future spam based on terms and phrases from past spam submissions.
+Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction capabilities. It allows you to restrict or allow form submissions based on email domains, block spam entries using WordPressâ€™s Disallowed Comment Keys, enforce minimum lengths for text fields, and predict future spam based on terms and phrases from past spam submissions.
 
 ## Features
 
@@ -55,7 +55,7 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 - **Customizable**: Enable/disable and set the minimum length (default: 5 characters).
 
 ### Spam Filter
-- **Disallowed Keys Integration**: Uses WordPress’s Disallowed Comment Keys to flag spam entries.
+- **Disallowed Keys Integration**: Uses WordPressâ€™s Disallowed Comment Keys to flag spam entries.
 - **Field Flexibility**: Optionally check all form fields or limit to specific types (email, name, phone, company, message).
 - **Entry Blocking**: Add terms directly from the plugin to block spam submissions.
 
@@ -106,7 +106,7 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 2. **Check All Fields for Spam**:
    - **Unchecked**: Only checks email, name (First Name/Last Name), phone, company, and message fields for spam terms.
    - **Checked**: Scans all form fields (e.g., text, textarea, select) for spam terms.
-3. **Entry Block Terms**: Enter one term per line (e.g., `spam`, `viagra`) to block submissions containing these terms. These are added to WordPress’s Disallowed Comment Keys when saved (if spam filter is enabled).
+3. **Entry Block Terms**: Enter one term per line (e.g., `spam`, `viagra`) to block submissions containing these terms. These are added to WordPressâ€™s Disallowed Comment Keys when saved (if spam filter is enabled).
 4. **Save**: Click "Save Changes" to apply settings.
 
 ### Configuring Spam Predictor
@@ -151,10 +151,6 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 
 ## Debugging
 - Enable debugging in `wp-config.php`:
-  define('WP_DEBUG', true);
-  define('WP_DEBUG_LOG', true);
-  define('WP_DEBUG_DISPLAY', false);
-
 - Check `wp-content/debug.log` for errors if issues arise.
 
 ## Support
