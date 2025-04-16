@@ -160,6 +160,7 @@ Contact support@wpproatoz.com for assistance.
 ## Credits
 - Email Domain Validator based on GW_Email_Domain_Validator class.
 - Spam Filter originally developed by Nikki Stokes (https://thebizpixie.com).
+- Web321.co for his help with selector functions.
 
 ## Screenshots
 1. **Admin Settings Page** - Configure email validation, spam filter, and spam predictor settings.
