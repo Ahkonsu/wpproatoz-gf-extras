@@ -1,30 +1,8 @@
-  ___  _     _                         
- / _ \| |   | |                        
-/ /_\ \ |__ | | _____  _ __  ___ _   _ 
-|  _  | '_ \| |/ / _ \| '_ \/ __| | | |
-| | | | | | |   < (_) | | | \__ \ |_| |
-\_| |_/_| |_|_|\_\___/|_| |_|___/\__,_|
-                                       
-                                      
-        
-        \||/
-                |  @___oo
-      /\  /\   / (__,,,,|
-     ) /^\) ^\/ _)
-     )   /^\/   _)
-     )   _ /  / _)
- /\  )/\/ ||  | )_)
-<  >      |(,,) )__)
- ||      /    \)___)\
- | \____(      )___) )___
-  \______(_______;;; __;;;
-  
-    
 /*
 Plugin Name: WPProAtoZ Enhanced Tools for Gravity Forms
 Plugin URI: https://wpproatoz.com
 Description: Enhanced Tools for Gravity Forms is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction using past submissions. Restrict or allow submissions by email domain, block spam with Disallowed Comment Keys, enforce text field length, and predict spam with a custom terms database.
-Version: 2.3
+Version: 2.6
 Requires at least: 6.0
 Requires PHP: 8.0
 Author: WPProAtoZ.com
@@ -36,17 +14,17 @@ GitHub Branch: main
 Requires Plugins: gravityforms
 */
 
-# Gravity Forms Enhanced Tools
+# WPProAtoZ Enhanced Tools for Gravity Forms
 
 ## Description
-Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction capabilities. It allows you to restrict or allow form submissions based on email domains, block spam entries using WordPress’s Disallowed Comment Keys, enforce minimum lengths for text and textarea fields, and predict future spam based on terms and phrases from past spam submissions.
+WPProAtoZ Enhanced Tools for Gravity Forms is a powerful WordPress plugin that extends Gravity Forms with advanced features to enhance form security and usability. It provides robust email domain validation, sophisticated spam filtering with regex and pattern detection, minimum character length enforcement, and predictive spam analysis based on historical submissions. Key capabilities include restricting or allowing submissions by email domain, blocking spam using WordPress’s Disallowed Comment Keys, enforcing text field lengths, and predicting spam with a custom database of terms and phrases.
 
 ## Features
 
 ### Email Domain Validator
 - **Restrict Domains**: Limit submissions to specific domains or ban specific domains.
 - **Multiple Forms & Fields**: Apply validation to one or more Gravity Forms and their email fields via a mapping interface.
-- **Custom Messages**: Set a custom validation message or hide it entirely for silent failure.
+- **Custom Messages**: Set a custom validation message or hide it for silent failure.
 - **Flexible Configuration**: Choose between "Limit" (whitelist) or "Ban" (blacklist) modes.
 
 ### Minimum Character Length
@@ -57,6 +35,11 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 ### Spam Filter
 - **Disallowed Keys Integration**: Uses WordPress’s Disallowed Comment Keys to flag spam entries.
 - **Field Flexibility**: Optionally check all form fields or limit to specific types (email, name, phone, company, message).
+- **Regex Support**: Enable regular expression matching for spam terms (e.g., `/\bviagra\b/i`).
+- **Whole-Word Matching**: Prevent partial matches (e.g., "casino" won’t match "cassino") when enabled.
+- **Repetitive Pattern Detection**: Flags submissions with repeated words or phrases (e.g., "ShirleyShirleyShirley" or "Please contact me by email" repeated) to bypass minimum character requirements.
+- **Keyboard Spam Detection**: Identifies random, incoherent text (e.g., "dfasfasfs,gfyhsxyhzhzdfhyztded") used to pad character counts.
+- **Custom Common Words**: Define a list of words (e.g., "the", "and") to ignore during spam detection, customizable via the admin interface.
 - **Entry Blocking**: Add terms directly from the plugin to block spam submissions.
 
 ### Spam Predictor
@@ -69,8 +52,8 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 - **Historical Data**: Integrates past spam entries from Gravity Forms into the prediction model.
 
 ## Installation
-1. **Upload**: Upload the `gravity-forms-enhanced-tools` folder to your `/wp-content/plugins/` directory.
-2. **Activate**: Go to **Plugins** in WordPress admin and activate "Gravity Forms Enhanced Tools."
+1. **Upload**: Upload the `wpproatoz-gf-extras` folder to your `/wp-content/plugins/` directory.
+2. **Activate**: Go to **Plugins** in WordPress admin and activate "WPProAtoZ Enhanced Tools for Gravity Forms."
 3. **Configure**: Click the "Settings" link next to the plugin on the Plugins page, or navigate to **Settings > GF Enhanced Tools**.
 
 ## Requirements
@@ -81,7 +64,7 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 ## Usage
 
 ### Accessing Settings
-- On the **Plugins** page, find "Gravity Forms Enhanced Tools" and click the "Settings" link next to "Deactivate."
+- On the **Plugins** page, find "WPProAtoZ Enhanced Tools for Gravity Forms" and click the "Settings" link next to "Deactivate."
 - Alternatively, go to **Settings > GF Enhanced Tools** in the WordPress admin menu.
 
 ### Configuring Email Domain Validator
@@ -106,8 +89,13 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 2. **Check All Fields for Spam**:
    - **Unchecked**: Only checks email, name (First Name/Last Name), phone, company, and message fields for spam terms.
    - **Checked**: Scans all form fields (e.g., text, textarea, select) for spam terms.
-3. **Entry Block Terms**: Enter one term per line (e.g., `spam`, `viagra`) to block submissions containing these terms. These are added to WordPress’s Disallowed Comment Keys when saved (if spam filter is enabled).
-4. **Save**: Click "Save Changes" to apply settings.
+3. **Enable Regex Matching**: Check to allow regular expression patterns in Disallowed Comment Keys (e.g., `/\bviagra\b/i`).
+4. **Enable Whole-Word Matching**: Check to ensure non-regex terms match whole words only (e.g., "casino" won’t match "cassino").
+5. **Enable Repetitive Pattern Detection**: Check to flag repeated words or phrases (e.g., "ShirleyShirleyShirley"). Set the repetition threshold (default: 3).
+6. **Enable Keyboard Spam Detection**: Check to flag random, incoherent text (e.g., "dfasfasfs,gfyhsxyhzhzdfhyztded"). Set the threshold (0.0–1.0, default: 0.8).
+7. **Common Words**: Enter one word per line to ignore in spam detection (e.g., "the", "and"). Defaults to a predefined list, customizable to add/remove words.
+8. **Entry Block Terms**: Enter one term per line (e.g., `spam`, `viagra`, `/\bfree money\b/i`) to block submissions containing these terms. These are added to WordPress’s Disallowed Comment Keys when saved (if spam filter is enabled).
+9. **Save**: Click "Save Changes" to apply settings.
 
 ### Configuring Spam Predictor
 1. **Enable**: Check "Spam Predictor" to activate (disabled by default).
@@ -138,21 +126,44 @@ Gravity Forms Enhanced Tools is a WordPress plugin that extends Gravity Forms wi
 - Existing keys are preserved, and duplicates are avoided.
 - Blocked terms apply to all forms when the spam filter is active.
 
+### Customizing Common Words
+1. In the Settings tab, under Spam Filter and Predictor, find the **Common Words** textarea.
+2. View the default list (e.g., "the", "for", "you", etc.).
+3. Modify as needed:
+   - **Add**: Enter new words (e.g., `hello`, `world`) on new lines.
+   - **Remove**: Delete unwanted words (e.g., `the`, `and`).
+   - **Replace**: Enter a new list (e.g., `a`, `an`, `to`).
+4. Save changes to update the list used in spam detection.
+5. Test submissions to ensure ignored words (e.g., `hello hello hello` if `hello` is common) are not flagged.
+
 ## Testing
 - **Email Validation**: Submit a form with an email from a restricted domain (e.g., `test@gmail.com` if `gmail.com` is listed):
   - "Limit" mode: Rejected unless listed.
   - "Ban" mode: Rejected if listed.
   - Check "Hide Validation Message" to ensure silent failure.
-- **Minimum Character Length**: Select a text or textarea field, set min length to 5, submit with "abc" (should fail) and "abcde" (should pass).
-- **Spam Filter**: Add a term (e.g., `spam`) to "Entry Block Terms," save, then submit a form with that term in a field:
-  - With "Check All Fields" off, only specific fields trigger it.
-  - With it on, any field triggers it.
+- **Minimum Character Length**: Select a text or textarea field, set min length to 42, submit with "abc" (should fail) and a 42+ character valid string (should pass).
+- **Spam Filter**:
+  - Add a term (e.g., `spam`, `/\bfree money\b/i`) to "Entry Block Terms," save, then submit a form with that term:
+    - With "Check All Fields" off, only specific fields trigger it.
+    - With it on, any field triggers it.
+  - Enable regex and whole-word matching, test with "casino" (flagged) and "cassino" (not flagged if whole-word is on).
+  - Enable repetitive pattern detection, test with "ShirleyShirleyShirleyShirley" (flagged if threshold is 3).
+  - Enable keyboard spam detection, test with "dfasfasfs,gfyhsxyhzhzdfhyztded" (flagged).
+  - Modify common words, test with "hello hello hello" (not flagged if `hello` is common).
 - **Spam Predictor**: Enable the predictor, mark entries as spam in Gravity Forms, add a manual phrase (e.g., "buy now" with frequency 5), and test submissions with that phrase to confirm blocking. Adjust the threshold and use bulk delete to manage terms.
 
 ## Debugging
 - Enable debugging in `wp-config.php`:
-
-- Check `wp-content/debug.log` for errors if issues arise.
+  ```php
+  define('WP_DEBUG', true);
+  define('WP_DEBUG_LOG', true);
+  define('WP_DEBUG_DISPLAY', false);
+  ```
+- Check `wp-content/debug.log` for errors, including:
+  - Initialization: `GFET: GravityForms_Enhanced_Tools initialized`.
+  - Spam detections: `GFET Spam Detected: ...`.
+  - Settings changes: `GFET: Sanitized common words: ...`.
+  - Common words: `GFET: Common words loaded: ...`.
 
 ## Support
 Contact support@wpproatoz.com for assistance.
@@ -160,10 +171,10 @@ Contact support@wpproatoz.com for assistance.
 ## Credits
 - Email Domain Validator based on GW_Email_Domain_Validator class.
 - Spam Filter originally developed by Nikki Stokes (https://thebizpixie.com).
-- Web321.co for his help with selector functions.
+- Web321.co for help with selector functions.
 
 ## Screenshots
-1. **Admin Settings Page** - Configure email validation, spam filter, and spam predictor settings.
+1. **Admin Settings Page** - Configure email validation, spam filter, spam predictor, and common words.
  ![screenshot1](screenshot1.png)
 2. **Spam Terms Management** - Add, edit, delete, and bulk delete spam terms/phrases.
  ![screenshot2](screenshot2.png)
@@ -172,6 +183,20 @@ Contact support@wpproatoz.com for assistance.
 You can view a demo of the plugin in action at [WPProAtoZ.com](https://wpproatoz.com/plugins).
 
 ## Changelog
+### 2.6
+- **Customizable Common Words**: Added a textarea in the Settings tab to allow administrators to define a custom list of common words (e.g., "the", "and") to ignore during spam detection. Supports adding, removing, or replacing the default list, stored in `gf_enhanced_tools_common_words`.
+- **Improved Logging**: Enhanced debug logging for common words loading and spam detection to aid troubleshooting.
+
+### 2.5
+- **Keyboard Spam Detection**: Added detection for random, incoherent text (e.g., "dfasfasfs,gfyhsxyhzhzdfhyztded") used to bypass minimum character requirements. Configurable via a threshold (0.0–1.0, default: 0.8) in the Settings tab.
+- **Enhanced Spam Filter**: Integrated keyboard spam detection with existing regex, whole-word, and repetitive pattern checks.
+- **Settings UI**: Added "Enable Keyboard Spam Detection" and "Keyboard Spam Threshold" options under Spam Filter and Predictor.
+
+### 2.4
+- **Repetitive Pattern Detection**: Added detection for repeated words or phrases (e.g., "ShirleyShirleyShirley" or "Please contact me by email" repeated) to catch spam padding character counts. Configurable via a threshold (default: 3) in the Settings tab.
+- **Settings UI**: Added "Enable Repetitive Pattern Detection" and "Repetition Threshold" options under Spam Filter and Predictor.
+- **Field Mapping**: Ensured repetitive pattern detection respects form-specific field mappings.
+
 ### 2.3
 - **Field Persistence Fix**: Resolved issue where selected field IDs in "Email Form & Field Mapping" were lost when saving other settings (e.g., "Hide Validation Message").
 - **Minimum Character Field Mapping Fix**: Fixed rendering of form and field selectors in "Minimum Character Field Mapping" to correctly display text and textarea fields.
@@ -189,11 +214,11 @@ You can view a demo of the plugin in action at [WPProAtoZ.com](https://wpproatoz
 
 ### 2.0
 - **Major Update**: Added Spam Predictor feature:
-- Collects single words and phrases (up to 5 words) from spam-marked submissions.
-- Form-specific tracking with `form_id`.
-- Manual term/phrase management (add, edit, delete).
-- Automatic cleanup of terms unseen for 90 days.
-- Integration of historical spam entries from Gravity Forms.
+  - Collects single words and phrases (up to 5 words) from spam-marked submissions.
+  - Form-specific tracking with `form_id`.
+  - Manual term/phrase management (add, edit, delete).
+  - Automatic cleanup of terms unseen for 90 days.
+  - Integration of historical spam entries from Gravity Forms.
 - Enhanced settings with better defaults and version checking for upgrades.
 - Consolidated previous updates (1.0-1.9) into this release.
 

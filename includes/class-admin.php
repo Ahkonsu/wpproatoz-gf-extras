@@ -15,7 +15,7 @@ class GFET_Admin {
 
         error_log('GFET: Admin class initialized at ' . date('Y-m-d H:i:s'));
 
-        add_action('admin_menu', array($this, 'add_admin_menu'));
+        add_action('admin_menu', array($this, 'add_admin_menu'), 20);
         add_action('admin_init', array($this, 'register_settings'));
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), array($this, 'add_settings_link'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
@@ -23,13 +23,14 @@ class GFET_Admin {
     }
 
     public function add_admin_menu() {
-        add_options_page(
+        $hook = add_options_page(
             'Gravity Forms Enhanced Tools',
             'GF Enhanced Tools',
             'manage_options',
             'gf-enhanced-tools',
             array($this, 'settings_page')
         );
+        error_log('GFET: Admin menu added, hook: ' . $hook);
     }
 
     public function register_settings() {
@@ -62,6 +63,12 @@ class GFET_Admin {
             'gf_enhanced_tools_spam_field_ids_map',
             array($this, 'sanitize_field_map')
         );
+
+        register_setting(
+            'gf_enhanced_tools_group',
+            'gf_enhanced_tools_common_words',
+            array($this, 'sanitize_common_words')
+        );
     }
 
     public function sanitize_settings($input) {
@@ -71,6 +78,12 @@ class GFET_Admin {
         $output['spam_filter']               = isset($input['spam_filter']) ? 'on' : 'off';
         $output['spam_predictor']            = isset($input['spam_predictor']) ? 'on' : 'off';
         $output['spam_all_fields']           = isset($input['spam_all_fields']) ? 'on' : 'off';
+        $output['spam_regex_enabled']        = isset($input['spam_regex_enabled']) ? 'on' : 'off';
+        $output['spam_whole_word']           = isset($input['spam_whole_word']) ? 'on' : 'off';
+        $output['spam_pattern_enabled']      = isset($input['spam_pattern_enabled']) ? 'on' : 'off';
+        $output['spam_pattern_threshold']    = isset($input['spam_pattern_threshold']) ? max(2, intval($input['spam_pattern_threshold'])) : 3;
+        $output['spam_keyboard_enabled']     = isset($input['spam_keyboard_enabled']) ? 'on' : 'off';
+        $output['spam_keyboard_threshold']   = isset($input['spam_keyboard_threshold']) ? min(1.0, max(0.0, floatval($input['spam_keyboard_threshold']))) : 0.8;
         $output['hide_validation_message']   = isset($input['hide_validation_message']) ? 'on' : 'off';
         $output['min_length_enabled']        = isset($input['min_length_enabled']) ? 'on' : 'off';
 
@@ -96,7 +109,7 @@ class GFET_Admin {
     }
 
     public function sanitize_field_map($input) {
-        $option_name = 'gf_enhanced_tools_field_ids_map';
+        $option_name = current_filter() === 'sanitize_option_gf_enhanced_tools_field_ids_map' ? 'gf_enhanced_tools_field_ids_map' : 'gf_enhanced_tools_spam_field_ids_map';
         error_log("GFET: Sanitizing field map, input: " . print_r($input, true));
 
         if (empty($input) || !is_string($input)) {
@@ -123,6 +136,15 @@ class GFET_Admin {
 
         $result = wp_json_encode($sanitized);
         error_log("GFET: Sanitized field map for $option_name: " . $result);
+        return $result;
+    }
+
+    public function sanitize_common_words($input) {
+        $sanitized = sanitize_textarea_field($input);
+        $words = array_filter(array_map('trim', explode("\n", $sanitized)));
+        $sanitized_words = array_map('strtolower', array_unique($words));
+        $result = implode("\n", $sanitized_words);
+        error_log('GFET: Sanitized common words: ' . $result);
         return $result;
     }
 
@@ -193,7 +215,6 @@ class GFET_Admin {
                         'type' => $input_type
                     ];
                 } elseif ($field_type === 'text') {
-                    // Temporary debug: include all fields
                     $fields[] = [
                         'id' => $field->id,
                         'label' => $field->label,
@@ -212,10 +233,16 @@ class GFET_Admin {
     }
 
     public function settings_page() {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'gf-enhanced-tools'));
+        }
+
         $settings = $this->settings;
         $spam_settings = get_option('gf_enhanced_tools_spam_settings', []);
         $default_message = __('Oh no! <strong>%s</strong> email accounts are not eligible for this form.', 'gf-enhanced-tools');
         $active_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'settings';
+
+        error_log('GFET: Rendering settings page, user: ' . wp_get_current_user()->user_login . ', tab: ' . $active_tab);
         ?>
         <div class="wrap">
             <h1>Gravity Forms Enhanced Tools</h1>
@@ -340,7 +367,7 @@ class GFET_Admin {
                     </table>
 
                     <h2 style="font-size: 1.5em; font-weight: bold;">Spam Filter and Predictor</h2>
-                    <p>Block spam submissions using disallowed terms and predict spam based on historical data.</p>
+                    <p>Block spam submissions using disallowed terms, repetitive patterns, keyboard spam, and predict spam based on historical data.</p>
 
                     <table class="form-table">
                         <tr>
@@ -362,12 +389,82 @@ class GFET_Admin {
                         </tr>
     
                         <tr>
+                            <th>Enable Regex Matching</th>
+                            <td>
+                                <input type="checkbox" name="gf_enhanced_tools_settings[spam_regex_enabled]" 
+                                       value="on" <?php checked($settings['spam_regex_enabled'] ?? 'off', 'on'); ?>>
+                                Enable regular expression matching for spam terms
+                                <p class="description">Allows terms in Disallowed Comment Keys to be regex patterns (e.g., "/\bviagra\b/i").</p>
+                            </td>
+                        </tr>
+    
+                        <tr>
+                            <th>Enable Whole-Word Matching</th>
+                            <td>
+                                <input type="checkbox" name="gf_enhanced_tools_settings[spam_whole_word]" 
+                                       value="on" <?php checked($settings['spam_whole_word'] ?? 'off', 'on'); ?>>
+                                Enable whole-word matching for non-regex terms
+                                <p class="description">Ensures terms like "casino" don’t match words like "cassino".</p>
+                            </td>
+                        </tr>
+    
+                        <tr>
+                            <th>Enable Repetitive Pattern Detection</th>
+                            <td>
+                                <input type="checkbox" name="gf_enhanced_tools_settings[spam_pattern_enabled]" 
+                                       value="on" <?php checked($settings['spam_pattern_enabled'] ?? 'off', 'on'); ?>>
+                                Enable detection of repetitive words or phrases
+                                <p class="description">Flags submissions with repeated content (e.g., "ShirleyShirleyShirley" or "Please contact me by email" repeated) to bypass minimum character requirements.</p>
+                            </td>
+                        </tr>
+    
+                        <tr>
+                            <th>Repetition Threshold</th>
+                            <td>
+                                <input type="number" name="gf_enhanced_tools_settings[spam_pattern_threshold]" 
+                                       value="<?php echo esc_attr($settings['spam_pattern_threshold'] ?? '3'); ?>" 
+                                       min="2" style="width: 70px;">
+                                <p class="description">Minimum number of repetitions to flag as spam (e.g., 3 means a word or phrase repeated 3+ times).</p>
+                            </td>
+                        </tr>
+    
+                        <tr>
+                            <th>Enable Keyboard Spam Detection</th>
+                            <td>
+                                <input type="checkbox" name="gf_enhanced_tools_settings[spam_keyboard_enabled]" 
+                                       value="on" <?php checked($settings['spam_keyboard_enabled'] ?? 'off', 'on'); ?>>
+                                Enable detection of random, incoherent text
+                                <p class="description">Flags submissions with keyboard spam (e.g., "dfasfasfs,gfyhsxyhzhzdfhyztded") to bypass minimum character requirements.</p>
+                            </td>
+                        </tr>
+    
+                        <tr>
+                            <th>Keyboard Spam Threshold</th>
+                            <td>
+                                <input type="number" name="gf_enhanced_tools_settings[spam_keyboard_threshold]" 
+                                       value="<?php echo esc_attr($settings['spam_keyboard_threshold'] ?? '0.8'); ?>" 
+                                       min="0" max="1" step="0.1" style="width: 70px;">
+                                <p class="description">Threshold for flagging random text (0.0–1.0, default: 0.8). Lower values are stricter, higher values are more lenient.</p>
+                            </td>
+                        </tr>
+    
+                        <tr>
+                            <th>Common Words</th>
+                            <td>
+                                <textarea name="gf_enhanced_tools_common_words" rows="5" cols="50"><?php 
+                                    echo esc_textarea(get_option('gf_enhanced_tools_common_words', implode("\n", $this->common_words))); 
+                                ?></textarea>
+                                <p class="description">Enter one word per line to ignore in spam detection (e.g., "the", "and"). These words are excluded from repetitive pattern and keyboard spam checks.</p>
+                            </td>
+                        </tr>
+    
+                        <tr>
                             <th>Entry Block Terms</th>
                             <td>
                                 <textarea name="gf_enhanced_tools_settings[entry_block_terms]" rows="5" cols="50"><?php 
                                     echo esc_textarea($settings['entry_block_terms'] ?? ''); 
                                 ?></textarea>
-                                <p class="description">Enter one term per line to block submissions.</p>
+                                <p class="description">Enter one term per line to block submissions. Supports regex if enabled (e.g., "/\bviagra\b/i").</p>
                             </td>
                         </tr>
     
@@ -400,6 +497,7 @@ class GFET_Admin {
 
             <?php elseif ($active_tab === 'spam-terms') : ?>
                 <h2>Spam Terms Management</h2>
+                <p>Manage spam terms stored in the database. Terms can be literal or regex patterns (if regex is enabled in Settings).</p>
                 <?php $this->render_spam_terms_tab(); ?>
 
             <?php elseif ($active_tab === 'docs') : ?>
@@ -517,8 +615,8 @@ class GFET_Admin {
                 <tr>
                     <th><label for="new_term">Term/Phrase</label></th>
                     <td>
-                        <input type="text" name="new_term" id="new_term" class="regular-text" placeholder="e.g., buy now">
-                        <p class="description">Minimum 3 characters, max 5 words.</p>
+                        <input type="text" name="new_term" id="new_term" class="regular-text" placeholder="e.g., buy now or /\bviagra\b/i">
+                        <p class="description">Minimum 3 characters, max 5 words. Use regex patterns like "/\bterm\b/i" if regex is enabled.</p>
                     </td>
                 </tr>
                 <tr>
@@ -621,3 +719,4 @@ class GFET_Admin {
         }
     }
 }
+?>

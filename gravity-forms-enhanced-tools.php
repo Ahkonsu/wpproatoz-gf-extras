@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms Enhanced Tools from WPProAtoZ 
 Plugin URI: https://wpproatoz.com
 Description: Enhanced Tools for Gravity Forms is a WordPress plugin that extends Gravity Forms with advanced email domain validation, spam filtering, minimum character length enforcement, and spam prediction using past submissions. Restrict or allow submissions by email domain, block spam with Disallowed Comment Keys, enforce text field length, and predict spam with a custom terms database.
-Version: 2.3
+Version: 2.6
 Requires at least: 6.0
 Requires PHP: 8.0
 Author: WPProAtoZ.com
@@ -49,7 +49,7 @@ if (!class_exists('GFForms')) {
 // Main plugin class
 class GravityForms_Enhanced_Tools {
     private $settings;
-    private $version = '2.2';
+    private $version = '2.6';
     public $field_map;
     private $common_words;
     private $admin;
@@ -60,6 +60,12 @@ class GravityForms_Enhanced_Tools {
             'email_validator' => 'on',
             'spam_filter' => 'on',
             'spam_predictor' => 'off',
+            'spam_regex_enabled' => 'off',
+            'spam_whole_word' => 'off',
+            'spam_pattern_enabled' => 'off',
+            'spam_pattern_threshold' => 3,
+            'spam_keyboard_enabled' => 'off',
+            'spam_keyboard_threshold' => 0.8,
             'restricted_domains' => "gmail.com\nhotmail.com\ntest.com",
             'form_ids' => '152',
             'field_id' => '9',
@@ -74,11 +80,21 @@ class GravityForms_Enhanced_Tools {
         );
 
         $this->settings = wp_parse_args(get_option('gf_enhanced_tools_settings', array()), $default_settings);
-        $this->common_words = [
+
+        // Define default common words
+        $default_common_words = [
             'the', 'for', 'you', 'have', 'and', 'to', 'is', 'in', 'it', 'of',
             'that', 'this', 'on', 'with', 'are', 'be', 'at', 'by', 'not', 'or',
             'was', 'but', 'from', 'they', 'we', 'an', 'he', 'she', 'as', 'do'
         ];
+
+        // Load custom common words, fall back to default
+        $custom_common_words = get_option('gf_enhanced_tools_common_words', '');
+        if (!empty($custom_common_words)) {
+            $this->common_words = array_filter(array_map('trim', explode("\n", strtolower($custom_common_words))));
+        } else {
+            $this->common_words = $default_common_words;
+        }
 
         register_activation_hook(__FILE__, array($this, 'create_spam_terms_table'));
         add_action('plugins_loaded', array($this, 'check_and_update_table'));
@@ -100,6 +116,12 @@ class GravityForms_Enhanced_Tools {
 
         if ($this->settings['min_length_enabled'] === 'on') {
             add_filter('gform_validation', array($this, 'validate_min_length'));
+        }
+
+        // Log initialization
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('GFET: GravityForms_Enhanced_Tools initialized at ' . date('Y-m-d H:i:s'));
+            error_log('GFET: Common words loaded: ' . implode(', ', $this->common_words));
         }
     }
 
@@ -241,3 +263,4 @@ class GravityForms_Enhanced_Tools {
 
 // Initialize plugin
 new GravityForms_Enhanced_Tools();
+?>
